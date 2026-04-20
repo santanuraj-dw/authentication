@@ -10,6 +10,8 @@ import VerifyOtp from "./pages/VerifyOtp";
 import EmailVerify from "./pages/EmailVerify";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 function App() {
   return (
     <AuthProvider>
@@ -35,6 +37,10 @@ function App() {
 
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/verify-email" element={<EmailVerify />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* <Route path="/verify-reset-otp" element={<VerifyResetOtp />} /> */}
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route
             path="/admin"

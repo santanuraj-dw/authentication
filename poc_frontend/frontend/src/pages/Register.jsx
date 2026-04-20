@@ -5,15 +5,25 @@ import Api from "../services/api";
 // import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // const { setUser } = useAuth();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    if (form.password !== form.confirmPassword) {
+      return setErrorMsg("Passwords do not match");
+    }
     try {
+      setLoading(true);
       const res = await Api.post("/auth/register", form);
       if (res?.data && res?.data?.data) {
         // await Api.get("/auth/me")
@@ -31,6 +41,8 @@ const Register = () => {
     } catch (error) {
       const message = error.response?.data?.message || "Registration failed";
       setErrorMsg(message);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -65,21 +77,41 @@ const Register = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
 
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+                autoComplete="new-password"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+
+              <p className="text-xs text-gray-500 mt-1">
+                Password must be at least 8 characters and include uppercase,
+                lowercase, number, and special character.
+              </p>
+            </div>
+
             <input
               type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="Confirm Password"
+              value={form.confirmPassword}
+              onChange={(e) =>
+                setForm({ ...form, confirmPassword: e.target.value })
+              }
               required
-              autoComplete="new-password"
-              minLength={6}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
 
             <button
               type="submit"
-              className="w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed">
-              Register
+              disabled={loading}
+              className={`w-full py-2 text-white rounded-lg ${
+                loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+              }`}>
+              {loading ? "Creating..." : "Register"}
             </button>
           </form>
 

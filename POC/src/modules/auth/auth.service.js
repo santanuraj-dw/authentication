@@ -8,7 +8,12 @@ import { resUser } from "../../utils/userRes.js";
 
 //register
 export const registerUserService = async (userData) => {
-  const { username, email, password, role } = userData;
+  const { username, email, password, confirmPassword, role } = userData;
+
+  if (password !== confirmPassword) {
+    throw new ApiError(400, "password do not match");
+  }
+
   const existingUser = await User.findOne({
     email,
   });
@@ -28,7 +33,7 @@ export const registerUserService = async (userData) => {
 
   // const { accessToken, refreshToken } = await generateTokensAndSave(user);
 
-  console.log("send otp");
+  // console.log("send otp");
   await sendEmail(email, otp);
   return {
     user: resUser(user),
@@ -194,7 +199,9 @@ export const changeRole = async (data) => {
   return user;
 };
 
+//get all users
 export const getAllUser = async (id) => {
+  // console.log(id);
   const users = await User.find({
     _id: { $ne: id },
   })

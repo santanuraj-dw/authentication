@@ -7,6 +7,8 @@ import { useAuth } from "../context/AuthContext";
 const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(60);
+  const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const { setUser } = useAuth();
 
@@ -38,36 +40,42 @@ const VerifyOtp = () => {
       return;
     }
     try {
-      const res = await api.post("/auth/verify-otp", { email, otp });
-      if (res?.data && res?.data?.data){
-        await api.get("/auth/me")
-          .then((res) => {
-            setUser(res?.data?.data);
-          })
-          .catch((error) => {
-            // toast.error(error.message)
-            setUser(null);
-            // navigate("/verify-otp")
-          })
-        }
+      setLoading(true);
+      await api.post("/auth/verify-otp", { email, otp });
+      // if (res?.data && res?.data?.data){
+      //   await api.get("/auth/me")
+      //     .then((res) => {
+      //       setUser(res?.data?.data);
+      //     })
+      //     .catch(() => {
+      //       // toast.error(error.message)
+      //       setUser(null);
+      //       // navigate("/verify-otp")
+      //     })
+      //   }
       localStorage.removeItem("email");
       toast.success("Email verified succesfully");
       navigate("/");
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid OTP";
       toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
   //resend otp
   const handleResend = async () => {
     try {
+      setResending(true);
       await api.post("/auth/resend-otp", { email });
       toast.success("OTP resent");
       setTimer(60);
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to resend OTP";
       toast.error(msg);
+    } finally {
+      setResending(false);
     }
   };
 
@@ -88,15 +96,25 @@ const VerifyOtp = () => {
 
             <button
               type="submit"
-              className="w-20 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed">
-              Verify
+              disabled={loading}
+              className={`w-20 py-2 text-white rounded-lg ${
+                loading ? "bg-gray-400" : "bg-blue-600"
+              }`}>
+              {loading ? "..." : "Verify"}
             </button>
           </form>
 
           <br />
 
-          <button onClick={handleResend} disabled={timer > 0} className="text-blue-500 hover:cursor-pointer">
-            {timer > 0 ? `Resend in ${timer}s` : "Resend OTP"}
+          <button
+            onClick={handleResend}
+            disabled={timer > 0 || resending}
+            className="text-blue-500">
+            {resending
+              ? "Sending..."
+              : timer > 0
+                ? `Resend in ${timer}s`
+                : "Resend OTP"}
           </button>
         </div>
       </div>

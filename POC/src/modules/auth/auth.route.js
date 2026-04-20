@@ -18,6 +18,7 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import { authLimiter } from "../../middlewares/ratelimiter.middleware.js";
 import { verifyJWT } from "../../middlewares/auth.middleware.js";
 import authorizeRoles from "../../middlewares/authRole.middleware.js";
+import { sendEmail } from "../../utils/sendMail.js";
 
 const router = Router();
 
@@ -51,5 +52,10 @@ router.get(
   authorizeRoles("admin"),
   asyncHandler(getAllUserController),
 );
+
+// router.get("/mail", async (req, res) => {
+//   await sendEmail("santanu.raj@defineway.in", "123456");
+//   res.send("send message")
+// });
 
 export default router;

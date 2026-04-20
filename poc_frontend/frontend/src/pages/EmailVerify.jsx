@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 
 const EmailVerify = () => {
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,6 +34,7 @@ const EmailVerify = () => {
 
   const handleSendOtp = async () => {
     try {
+      setSending(true);
       await Api.post("/auth/resend-otp", { email });
 
       toast.success("OTP sent successfully");
@@ -40,6 +43,8 @@ const EmailVerify = () => {
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to send OTP";
       toast.error(msg);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -47,15 +52,19 @@ const EmailVerify = () => {
     e.preventDefault();
 
     try {
+      setVerifying(true);
       await Api.post("/auth/verify-otp", { email, otp });
 
       toast.success("Email verified successfully");
       const res = await Api.get("/auth/me");
       setUser(res.data.data);
-      navigate("/dashboard");
+      // toast.success("Email verified sucessfully")
+      navigate("/");
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid OTP";
       toast.error(msg);
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -75,8 +84,11 @@ const EmailVerify = () => {
         {!otpSent && (
           <button
             onClick={handleSendOtp}
-            className="w-full bg-blue-500 text-white py-2 rounded mb-3">
-            Send OTP
+            disabled={sending}
+            className={`w-full py-2 rounded mb-3 text-white ${
+              sending ? "bg-gray-400" : "bg-blue-500"
+            }`}>
+            {sending ? "Sending..." : "Send OTP"}
           </button>
         )}
 
@@ -92,14 +104,17 @@ const EmailVerify = () => {
 
             <button
               onClick={handleVerify}
-              className="w-full bg-green-500 text-white py-2 rounded mb-2">
-              Verify OTP
+              disabled={verifying}
+              className={`w-full py-2 rounded mb-2 text-white ${
+                verifying ? "bg-gray-400" : "bg-green-500"
+              }`}>
+              {verifying ? "Verifying..." : "Verify OTP"}
             </button>
 
             <button
               disabled={timer > 0}
               onClick={handleSendOtp}
-              className="w-full text-sm text-blue-600">
+              className="w-full text-sm text-blue-600 hover:cursor-pointer">
               {timer > 0 ? `Resend OTP in ${timer}s` : "Resend OTP"}
             </button>
           </>

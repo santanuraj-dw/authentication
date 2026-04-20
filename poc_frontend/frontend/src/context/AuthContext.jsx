@@ -5,23 +5,24 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Api.get("/auth/me")
-      .then((res) => {
-        setUser(res.data.data);
-      })
-      .catch(() => {
-        setUser(null);
-      })
-      .finally(() => {
-        setLoading(false); 
-      });
-  }, []);
+ useEffect(() => {
+  console.log("Calling /auth/me...");
+
+  Api.get("/auth/me")
+    .then((res) => {
+      console.log("User fetched:", res);
+      setUser(res.data.data);
+    })
+    .catch((err) => {
+      console.log("Auth error:", err?.response);
+      setUser(null);
+    })
+}, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser }}>
       {children}
     </AuthContext.Provider>
   );

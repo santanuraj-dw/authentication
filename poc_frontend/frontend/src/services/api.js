@@ -24,6 +24,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     // console.log("original request: ",originalRequest)
     // console.log("original retry: ",originalRequest)
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -42,7 +43,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (error) {
         isRefreshing = false;
-        window.location.href = "/";
+        window.location.href = "/login";
         return Promise.reject(error);
       }
     }

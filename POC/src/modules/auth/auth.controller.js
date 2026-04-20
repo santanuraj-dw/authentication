@@ -31,6 +31,7 @@ export const registerUserController = async (req, res) => {
   if (error) {
     throw new ApiError(400, error.details[0].message);
   }
+  // const { user } = await registerUserService(req.body);
   const { user } = await registerUserService(value);
 
   return res
@@ -185,7 +186,7 @@ export const changeRoleController = async (req, res) => {
 
 // get all
 export const getAllUserController = async (req, res) => {
-  const { id } = req.user.id;
+  const { id } = req.user;
   const users = await getAllUser(id);
 
   return res
