@@ -1,0 +1,211 @@
+import redis from "../../config/redis.js";
+import { User } from "../../models/User.model.js";
+import ApiError from "../../utils/ApiError.js";
+import { generateOTP } from "../../utils/GenerateOtp.js";
+import { generateTokensAndSave } from "../../utils/jwt.js";
+import { sendEmail } from "../../utils/sendMail.js";
+import { resUser } from "../../utils/userRes.js";
+
+//register
+export const registerUserService = async (userData) => {
+  const { username, email, password, role } = userData;
+  const existingUser = await User.findOne({
+    email,
+  });
+  if (existingUser) {
+    throw new ApiError(400, "Email already in use");
+  }
+
+  const otp = await generateOTP();
+  await redis.set(`otp:${email}`, otp, "EX", 300);
+
+  const user = await User.create({
+    username,
+    email,
+    password,
+    role: role || "user",
+  });
+
+  // const { accessToken, refreshToken } = await generateTokensAndSave(user);
+
+  console.log("send otp");
+  await sendEmail(email, otp);
+  return {
+    user: resUser(user),
+  };
+};
+
+//verifyOtp
+export const verifyOtp = async (data) => {
+  const { email, otp } = data;
+  const user = await User.findOne({ email });
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  const storedOtp = await redis.get(`otp:${email}`);
+
+  if (!storedOtp || storedOtp !== otp) {
+    throw new ApiError(400, "Invalid or expired OTP");
+  }
+
+  user.isVerified = true;
+  await user.save();
+  await redis.del(`otp:${email}`);
+};
+
+//resend otp
+export const resendOtp = async (data) => {
+  const { email } = data;
+  const user = await User.findOne({ email });
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.isVerified) {
+    throw new ApiError(400, "user already verified");
+  }
+
+  const otp = await generateOTP();
+  await redis.set(`otp:${email}`, otp, "EX", 300);
+  await sendEmail(email, otp);
+};
+
+//login
+export const loginUserService = async (data) => {
+  const { email, password } = data;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(400, "Invalid user");
+  }
+  if (!user.isActive) {
+    throw new ApiError(403, "Your account has been deactivated");
+  }
+  // if (!user.isVerified) {
+  //   throw new ApiError(403, "Please verify your email first");
+  // }
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(400, "Invalid password");
+  }
+
+  const { accessToken, refreshToken } = await generateTokensAndSave(user);
+
+  return {
+    user: resUser(user),
+    accessToken,
+    refreshToken,
+  };
+};
+
+//forgot password
+export const forgotPassword = async (data) => {
+  const { email } = data;
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(404, "User not found");
+
+  const otp = await generateOTP();
+  await redis.set(`resetOtp:${email}`, otp, "EX", 300);
+
+  await sendEmail(email, otp);
+};
+
+//verify OTP
+export const verifyRestOtp = async (data) => {
+  const { email, otp } = data;
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(400, "Invalid email");
+
+  const storedOtp = await redis.get(`resetOtp:${email}`);
+  if (!storedOtp || storedOtp !== otp) {
+    throw new ApiError(400, "Invalid or expired OTP");
+  }
+};
+
+//reset password
+export const resetPassword = async (data) => {
+  const { email, otp, newPassword } = data;
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(400, "Invalid email");
+
+  const storedOtp = await redis.get(`resetOtp:${email}`);
+
+  if (!storedOtp || storedOtp !== otp) {
+    throw new ApiError(400, "Invalid or expired OTP");
+  }
+
+  user.password = newPassword;
+  await user.save();
+  await redis.del(`resetOtp:${email}`);
+};
+
+//refresh token
+export const refreshTokenService = async (userId, oldRefreshToken) => {
+  const key = `refreshToken:${userId}`;
+  const storedRefreshToken = await redis.get(key);
+
+  if (!storedRefreshToken || storedRefreshToken !== oldRefreshToken) {
+    const keys = await redis.keys(`refreshToken:${userId}`);
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+    throw new ApiError(401, "Invalid refresh token");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(400, "User not found");
+  }
+
+  const { accessToken, refreshToken } = await generateTokensAndSave(user);
+
+  return {
+    accessToken,
+    newRefreshToken: refreshToken,
+  };
+};
+
+// change status
+export const changeStatus = async (data) => {
+  const { userId } = data;
+  console.log(userId);
+  const user = await User.findById(userId).select("-password");
+  if (!user) throw new ApiError(404, "User not found");
+
+  user.isActive = !user.isActive;
+  await user.save();
+  return user;
+};
+
+//change Role
+export const changeRole = async (data) => {
+  const { userId, role } = data;
+  if (!["user", "admin"].includes(role)) {
+    throw new ApiError(400, "Invalid role");
+  }
+
+  const user = await User.findById(userId).select("-password");
+  if (!user) throw new ApiError(404, "User not found");
+
+  user.role = role;
+  await user.save();
+
+  return user;
+};
+
+export const getAllUser = async (id) => {
+  const users = await User.find({
+    _id: { $ne: id },
+  })
+    .select("-password")
+    .sort({ createdAt: -1 });
+
+  return users;
+};
+
+export const getMe = async (data) => {
+  const { id } = data;
+  const user = await User.findById(id).select("-password");
+  return user;
+};

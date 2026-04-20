@@ -1,0 +1,39 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/santanu0101/Proof_of_concept#readme",
+  "bugs": {
+    "url": "https://github.com/santanu0101/Proof_of_concept/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/santanu0101/Proof_of_concept.git"
+  },
+  "license": "ISC",
+  "author": "Santanu Raj",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon "
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
+    "joi": "^18.1.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.4.1",
+    "morgan": "^1.10.1",
+    "nodemailer": "^8.0.5",
+    "redis": "^5.12.1",
+    "winston": "^3.19.0"
+  }
+}
