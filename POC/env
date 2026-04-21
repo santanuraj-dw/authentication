@@ -1,4 +1,6 @@
 MONGODB_URI=mongodb://localhost:27017/poc_db
+# MONGODB_URI=mongodb+srv://santanuraj75:MHgluAhZY1auGg3q@cluster0.ej04r.mongodb.net/poc_db?appName=Cluster0
+FRONTEND_URL=http://localhost:5173
 PORT=5000
 
 JWT_ACCESS_SECRET=862c10d1e72d13b228f7130b7bf9b329
@@ -6,3 +8,16 @@ JWT_REFRESH_SECRET=daed5acb51b4836eef412ae67c2ca6e1
 
 ACCESS_TOKEN_EXPIRY=15m
 REFRESH_TOKEN_EXPIRY=7d
+
+# REDIS_USERNAME=default
+# REDIS_PASSWORD=9tRSjBXMeKciHDjiAaZYaJ77jwDqhpND
+# REDIS_HOST=redis-14285.crce286.ap-south-1-1.ec2.cloud.redislabs.com
+# REDIS_PORT=14285
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+EMAIL_USER=santanu.raj@defineway.com
+EMAIL_PASS=ypxx csec jsxz hwuu
+
+# NODE_ENV=production
+NODE_ENV=dev

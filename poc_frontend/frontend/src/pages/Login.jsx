@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false); // 🔥 added
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const { setUser } = useAuth();
@@ -17,7 +17,7 @@ const Login = () => {
     setErrorMsg("");
 
     try {
-      setLoading(true); // 🔥 start loading
+      setLoading(true);
 
       await Api.post("/auth/login", form);
 
@@ -37,7 +37,7 @@ const Login = () => {
       const message = error.response?.data?.message || "Login failed";
       setErrorMsg(message);
     } finally {
-      setLoading(false); // 🔥 stop loading
+      setLoading(false);
     }
   };
 
@@ -89,11 +89,10 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-2 rounded text-white font-medium transition ${
-                loading
+              className={`w-full py-2 rounded text-white font-medium transition ${loading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
-              }`}
+                }`}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -119,8 +118,20 @@ const Login = () => {
           {errorMsg && (
             <div className="mt-3 p-2 text-sm text-red-600 bg-red-100 border border-red-300 rounded">
               {errorMsg}
+
+              {errorMsg === "Please verify your email first" && (
+                <div className="mt-2">
+                  <span
+                    onClick={() => navigate("/verify-email", { state: { email: form.email } })}
+                    className="text-blue-600 cursor-pointer hover:underline block"
+                  >
+                    Click here to verify your email
+                  </span>
+                </div>
+              )}
             </div>
           )}
+
         </div>
       </div>
     </div>

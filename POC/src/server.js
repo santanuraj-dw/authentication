@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 (async () => {
   try {
+    // console.log("hello")
     // await redis.connect();
     await connectDB();
     app.listen(PORT, () => {

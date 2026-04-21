@@ -14,7 +14,7 @@ const EmailVerify = () => {
 
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(!!initialEmail);
+  const [otpSent, setOtpSent] = useState(false);
   const [timer, setTimer] = useState(0);
 
   const { setUser } = useAuth();
@@ -33,12 +33,17 @@ const EmailVerify = () => {
   };
 
   const handleSendOtp = async () => {
+    if (!email) {
+      return toast.error("Email is required");
+    }
+
     try {
       setSending(true);
       await Api.post("/auth/resend-otp", { email });
 
       toast.success("OTP sent successfully");
       setOtpSent(true);
+      setOtp("");
       startTimer();
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to send OTP";
@@ -56,10 +61,10 @@ const EmailVerify = () => {
       await Api.post("/auth/verify-otp", { email, otp });
 
       toast.success("Email verified successfully");
-      const res = await Api.get("/auth/me");
-      setUser(res.data.data);
+      // const res = await Api.get("/auth/me");
+      // setUser(res.data.data);
       // toast.success("Email verified sucessfully")
-      navigate("/");
+      navigate("/login");
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid OTP";
       toast.error(msg);
@@ -81,17 +86,20 @@ const EmailVerify = () => {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full mb-3 px-3 py-2 border rounded"
         />
+
+        {/* SEND OTP BUTTON */}
         {!otpSent && (
           <button
             onClick={handleSendOtp}
-            disabled={sending}
-            className={`w-full py-2 rounded mb-3 text-white ${
-              sending ? "bg-gray-400" : "bg-blue-500"
-            }`}>
+            disabled={sending || !email}
+            className={`w-full py-2 rounded mb-3 text-white ${sending ? "bg-gray-400" : "bg-blue-500"
+              }`}
+          >
             {sending ? "Sending..." : "Send OTP"}
           </button>
         )}
 
+        {/* OTP SECTION */}
         {otpSent && (
           <>
             <input
@@ -105,16 +113,19 @@ const EmailVerify = () => {
             <button
               onClick={handleVerify}
               disabled={verifying}
-              className={`w-full py-2 rounded mb-2 text-white ${
-                verifying ? "bg-gray-400" : "bg-green-500"
-              }`}>
+              className={`w-full py-2 rounded mb-2 text-white ${verifying ? "bg-gray-400" : "bg-green-500"
+                }`}
+            >
               {verifying ? "Verifying..." : "Verify OTP"}
             </button>
 
+            {/* RESEND BUTTON */}
             <button
               disabled={timer > 0}
               onClick={handleSendOtp}
-              className="w-full text-sm text-blue-600 hover:cursor-pointer">
+              className={`w-full text-sm ${timer > 0 ? "text-gray-400" : "text-blue-600"
+                }`}
+            >
               {timer > 0 ? `Resend OTP in ${timer}s` : "Resend OTP"}
             </button>
           </>

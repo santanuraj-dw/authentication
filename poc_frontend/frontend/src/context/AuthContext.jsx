@@ -8,11 +8,11 @@ export const AuthProvider = ({ children }) => {
   // const [loading, setLoading] = useState(true);
 
  useEffect(() => {
-  console.log("Calling /auth/me...");
+  // console.log("Calling /auth/me...");
 
   Api.get("/auth/me")
     .then((res) => {
-      console.log("User fetched:", res);
+      // console.log("User fetched:", res);
       setUser(res.data.data);
     })
     .catch((err) => {
