@@ -22,7 +22,13 @@ const AdminDashboard = () => {
     fetchUsers();
   }, []);
 
-  const toggleStatus = async (id) => {
+  const toggleStatus = async (id, currentStatus) => {
+    const confirmAction = window.confirm(
+      `Are you sure you want to ${currentStatus ? "deactivate" : "activate"} this user?`
+    );
+
+    if (!confirmAction) return;
+
     try {
       await Api.patch(`/auth/admin/status-change/${id}`);
       toast.success("User status updated");
@@ -54,7 +60,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      
+
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
@@ -72,7 +78,7 @@ const AdminDashboard = () => {
       {/* Table Card */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm text-left">
-          
+
           {/* Head */}
           <thead className="bg-gray-200 text-gray-700">
             <tr>
@@ -105,11 +111,10 @@ const AdminDashboard = () => {
                 {/* Role Badge */}
                 <td className="p-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      u.role === "admin"
-                        ? "bg-purple-100 text-purple-600"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-medium ${u.role === "admin"
+                      ? "bg-purple-100 text-purple-600"
+                      : "bg-gray-200 text-gray-700"
+                      }`}
                   >
                     {u.role}
                   </span>
@@ -118,11 +123,10 @@ const AdminDashboard = () => {
                 {/* Status Badge */}
                 <td className="p-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      u.isActive
-                        ? "bg-green-100 text-green-600"
-                        : "bg-red-100 text-red-600"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-medium ${u.isActive
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-600"
+                      }`}
                   >
                     {u.isActive ? "Active" : "Inactive"}
                   </span>
@@ -131,11 +135,10 @@ const AdminDashboard = () => {
                 {/* Status Badge */}
                 <td className="p-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      u.isVerified
-                        ? "bg-green-100 text-green-600"
-                        : "bg-red-100 text-red-600"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-medium ${u.isVerified
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-600"
+                      }`}
                   >
                     {u.isVerified ? "verified" : "not verified"}
                   </span>
@@ -145,7 +148,7 @@ const AdminDashboard = () => {
                 <td className="p-3">
                   <div className="flex gap-2 justify-center">
                     <button
-                      onClick={() => toggleStatus(u._id)}
+                      onClick={() => toggleStatus(u._id, u.isActive)}
                       className="px-3 py-1 text-xs rounded bg-yellow-400 hover:bg-yellow-500"
                     >
                       {u.isActive ? "Deactivate" : "Activate"}

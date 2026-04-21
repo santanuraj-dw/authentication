@@ -81,12 +81,14 @@ export const loginUserService = async (data) => {
   if (!user) {
     throw new ApiError(400, "Invalid user");
   }
+  if (!user.isVerified) {
+    throw new ApiError(403, "Please verify your email first");
+  }
+  
   if (!user.isActive) {
     throw new ApiError(403, "Your account has been deactivated");
   }
-  // if (!user.isVerified) {
-  //   throw new ApiError(403, "Please verify your email first");
-  // }
+
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
     throw new ApiError(400, "Invalid password");
