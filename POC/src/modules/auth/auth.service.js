@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import redis from "../../config/redis.js";
+import { Role } from "../../models/Role.model.js";
 import { User } from "../../models/User.model.js";
 import ApiError from "../../utils/ApiError.js";
 import { generateOTP } from "../../utils/GenerateOtp.js";
@@ -8,7 +10,7 @@ import { resUser } from "../../utils/userRes.js";
 
 //register
 export const registerUserService = async (userData) => {
-  const { username, email, password, confirmPassword, role } = userData;
+  const { username, email, password, confirmPassword } = userData;
 
   if (password !== confirmPassword) {
     throw new ApiError(400, "password do not match");
@@ -21,6 +23,12 @@ export const registerUserService = async (userData) => {
     throw new ApiError(400, "Email already in use");
   }
 
+  const defaultRole = await Role.findOne({ name: "user" });
+
+  if (!defaultRole) {
+    throw new ApiError(500, "Default role not found");
+  }
+
   const otp = await generateOTP();
   await redis.set(`otp:${email}`, otp, "EX", 300);
 
@@ -28,7 +36,7 @@ export const registerUserService = async (userData) => {
     username,
     email,
     password,
-    role: role || "user",
+    roles: [defaultRole._id],
   });
 
   // const { accessToken, refreshToken } = await generateTokensAndSave(user);
@@ -77,14 +85,14 @@ export const resendOtp = async (data) => {
 //login
 export const loginUserService = async (data) => {
   const { email, password } = data;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).populate("roles", "name");
   if (!user) {
     throw new ApiError(400, "Invalid user");
   }
   if (!user.isVerified) {
     throw new ApiError(403, "Please verify your email first");
   }
-  
+
   if (!user.isActive) {
     throw new ApiError(403, "Your account has been deactivated");
   }
@@ -160,7 +168,7 @@ export const refreshTokenService = async (userId, oldRefreshToken) => {
     throw new ApiError(401, "Invalid refresh token");
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).populate("role","name");
   if (!user) {
     throw new ApiError(400, "User not found");
   }
@@ -176,8 +184,10 @@ export const refreshTokenService = async (userId, oldRefreshToken) => {
 // change status
 export const changeStatus = async (data) => {
   const { userId } = data;
-  console.log(userId);
-  const user = await User.findById(userId).select("-password");
+  // console.log(userId);
+  const user = await User.findById(userId)
+    .select("-password")
+    .populate("roles", "name");
   if (!user) throw new ApiError(404, "User not found");
 
   user.isActive = !user.isActive;
@@ -186,35 +196,81 @@ export const changeStatus = async (data) => {
 };
 
 //change Role
-export const changeRole = async (data) => {
-  const { userId, role } = data;
-  if (!["user", "admin"].includes(role)) {
-    throw new ApiError(400, "Invalid role");
+export const changeRole = async ({ userId, roles }) => {
+  const isValidIds = roles.every((id) => mongoose.Types.ObjectId.isValid(id));
+
+  if (!isValidIds) {
+    throw new ApiError(400, "Invalid role IDs");
   }
 
-  const user = await User.findById(userId).select("-password");
-  if (!user) throw new ApiError(404, "User not found");
+  const validRoles = await Role.find({ _id: { $in: roles } });
 
-  user.role = role;
-  await user.save();
+  if (validRoles.length !== roles.length) {
+    throw new ApiError(400, "Invalid roles provided");
+  }
+
+  const roleNames = validRoles.map((r) => r.name.toLowerCase());
+
+  if (roleNames.includes("admin")) {
+    throw new ApiError(403, "You are not allowed to assign admin role");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { roles },
+    { new: true, select: "-password" },
+  ).populate("roles", "name");
+
+  if (!user) throw new ApiError(404, "User not found");
 
   return user;
 };
 
 //get all users
-export const getAllUser = async (id) => {
-  // console.log(id);
-  const users = await User.find({
-    _id: { $ne: id },
-  })
-    .select("-password")
-    .sort({ createdAt: -1 });
+export const getAllUser = async ({ id, page, limit, search }) => {
+  const skip = (page - 1) * limit;
 
-  return users;
+  // console.log("SEARCH VALUE:", search);
+  const searchQuery = search
+    ? {
+        $or: [
+          { username: { $regex: search, $options: "i" } },
+          // { email: { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const query = {
+    _id: { $ne: id },
+    ...searchQuery,
+  };
+
+  // console.log(id);
+  const users = await User.find(query)
+    .populate("roles", "name")
+    .select("-password")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await User.countDocuments(query);
+
+  return {
+    users,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 };
 
-export const getMe = async (data) => {
-  const { id } = data;
-  const user = await User.findById(id).select("-password");
+export const getMe = async ({ id }) => {
+  const user = await User.findById(id)
+    .select("-password")
+    .populate("roles", "name");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
   return user;
 };

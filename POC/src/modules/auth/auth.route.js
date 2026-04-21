@@ -53,6 +53,7 @@ router.get(
   asyncHandler(getAllUserController),
 );
 
+
 // router.get("/mail", async (req, res) => {
 //   await sendEmail("santanu.raj@defineway.in", "123456");
 //   res.send("send message")
