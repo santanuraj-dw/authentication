@@ -10,7 +10,7 @@ const authorizeRoles = (...allowedRoles) => {
       typeof r === "string" ? r : r.name,
     );
 
-    console.log(userRoles); //[ { name: 'admin', permissions: [ 'all' ] } ]
+    // console.log(userRoles); 
     // console.log(allowedRoles)
 
     const hasRole = userRoles.some((role) => allowedRoles.includes(role));

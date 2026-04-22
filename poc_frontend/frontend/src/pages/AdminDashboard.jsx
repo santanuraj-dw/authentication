@@ -10,7 +10,8 @@ const AdminDashboard = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [totalPages, setTotalPages] = useState(1);
-  // const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   // const [newRole, setNewRole] = useState("");
   const [confirmUser, setConfirmUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -209,7 +210,7 @@ const AdminDashboard = () => {
                     ))}
                   </div>
 
-                  <div className="border rounded p-2 max-h-24 overflow-y-auto">
+                  {/* <div className="border rounded p-2 max-h-24 overflow-y-auto">
                     {roles.map((role) => {
                       const selected =
                         selectedRoles[u._id] || u.roles.map((r) => r._id);
@@ -253,7 +254,7 @@ const AdminDashboard = () => {
                     className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded"
                   >
                     Save
-                  </button>
+                  </button> */}
                 </td>
 
                 <td className="p-3">
@@ -280,12 +281,25 @@ const AdminDashboard = () => {
                   </span>
                 </td>
 
-                <td className="p-3 text-center">
+                <td className="p-3 text-center flex gap-2 justify-center">
                   <button
                     onClick={() => toggleStatus(u._id, u.isActive)}
-                    className="px-3 py-1 text-xs rounded bg-yellow-400 hover:bg-yellow-500"
+                    className="px-3 py-1 text-xs rounded bg-yellow-400"
                   >
                     {u.isActive ? "Deactivate" : "Activate"}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSelectedUser(u);
+                      setSelectedRoles({
+                        [u._id]: u.roles.map((r) => r._id),
+                      });
+                      setShowRoleModal(true);
+                    }}
+                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                  >
+                    Change Role
                   </button>
                 </td>
               </tr>
@@ -379,6 +393,86 @@ const AdminDashboard = () => {
                 className="px-3 py-1 bg-yellow-500 rounded"
               >
                 Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRoleModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl shadow w-96">
+            <h3 className="text-lg font-semibold mb-3">
+              Change Role - {selectedUser.username}
+            </h3>
+            
+            <div className="mb-3">
+              <p className="text-sm text-gray-500 mb-1">Assigned Roles:</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedUser.roles.map((r) => (
+                  <span
+                    key={r._id}
+                    className="px-2 py-1 bg-gray-200 text-xs rounded"
+                  >
+                    {r.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="border rounded p-2 max-h-40 overflow-y-auto">
+              {roles.map((role) => {
+                const selected = selectedRoles[selectedUser._id] || [];
+
+                return (
+                  <label
+                    key={role._id}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(role._id)}
+                      onChange={(e) => {
+                        let updated;
+
+                        if (e.target.checked) {
+                          updated = [...selected, role._id];
+                        } else {
+                          updated = selected.filter((id) => id !== role._id);
+                        }
+
+                        setSelectedRoles((prev) => ({
+                          ...prev,
+                          [selectedUser._id]: updated,
+                        }));
+                      }}
+                    />
+                    {role.name}
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setSelectedUser(null);
+                }}
+                className="px-3 py-1 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  await updateRoles(selectedUser._id);
+                  setShowRoleModal(false);
+                  setSelectedUser(null);
+                }}
+                className="px-3 py-1 bg-blue-500 text-white rounded"
+              >
+                Save
               </button>
             </div>
           </div>
