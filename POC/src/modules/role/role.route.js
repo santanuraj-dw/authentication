@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { createRoleController, getRolesController } from "./role.controller.js";
+import {
+  createRoleController,
+  getPermissionsController,
+  getRolesController,
+} from "./role.controller.js";
 import { verifyJWT } from "../../middlewares/auth.middleware.js";
 import authorizeRoles from "../../middlewares/authRole.middleware.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -11,6 +15,13 @@ router.post(
   verifyJWT,
   authorizeRoles("admin"),
   asyncHandler(createRoleController),
+);
+
+router.get(
+  "/permissions",
+  verifyJWT,
+  authorizeRoles("admin"),
+  asyncHandler(getPermissionsController),
 );
 
 router.get(
