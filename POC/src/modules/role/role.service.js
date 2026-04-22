@@ -11,6 +11,10 @@ export const createRoleService = async (data) => {
     throw new ApiError(400, "Role name is required");
   }
 
+  if (permissions.includes(PERMISSIONS.ALL)) {
+    throw new ApiError(403, "Not allowed");
+  }
+
   const existing = await Role.findOne({ name });
   if (existing) {
     throw new ApiError(400, "Role already exists");

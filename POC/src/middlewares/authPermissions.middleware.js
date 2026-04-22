@@ -8,7 +8,6 @@ const authorizePermissions = (...requiredPermissions) => {
     if (userPermissions.includes(PERMISSIONS.ALL)) {
       return next();
     }
-
     const hasPermission = requiredPermissions.every((p) =>
       userPermissions.includes(p),
     );
@@ -20,3 +19,5 @@ const authorizePermissions = (...requiredPermissions) => {
     next();
   };
 };
+
+export default authorizePermissions;
