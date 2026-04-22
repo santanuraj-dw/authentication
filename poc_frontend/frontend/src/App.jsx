@@ -13,6 +13,8 @@ import AdminRoute from "./components/AdminRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import RolesPage from "./pages/admin/Roles";
+import PermissionRoute from "./components/PermissionRoute";
+import { PERMISSIONS } from "./constants/permissions";
 function App() {
   return (
     <AuthProvider>
@@ -54,9 +56,11 @@ function App() {
           <Route
             path="/roles"
             element={
-              <AdminRoute>
+              <PermissionRoute permissions={[PERMISSIONS.ROLE_READ]}>
+              {/* <AdminRoute> */}
                 <RolesPage />
-              </AdminRoute>
+              {/* </AdminRoute> */}
+              </PermissionRoute>
             }
           />
 

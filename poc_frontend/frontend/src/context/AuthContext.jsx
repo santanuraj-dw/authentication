@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   Api.get("/auth/me")
     .then((res) => {
-      // console.log("User fetched:", res);
+      console.log("User fetched:", res);
       setUser(res.data.data);
     })
     .catch((err) => {

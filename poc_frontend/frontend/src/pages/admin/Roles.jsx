@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import Api from "../../services/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { hasPermission } from "../../utils/authorize";
+import { useAuth } from "../../context/AuthContext";
+import { PERMISSIONS } from "../../constants/permissions";
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -11,6 +14,8 @@ const RolesPage = () => {
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState([]);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+
+  const { user } = useAuth();
 
   const navigate = useNavigate();
 
@@ -42,12 +47,14 @@ const RolesPage = () => {
   const saveRole = async () => {
     try {
       if (editRole) {
+        console.log("edit role");
         await Api.patch(`/roles/${editRole._id}`, {
           name: roleName,
           permissions: selectedPermissions,
         });
         toast.success("Role updated");
       } else {
+        console.log("create role");
         await Api.post("/roles", {
           name: roleName,
           permissions: selectedPermissions,
@@ -83,12 +90,14 @@ const RolesPage = () => {
           <h2 className="text-2xl font-bold">Roles Management</h2>
         </div>
 
+        {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
         <button
           onClick={() => setShowModal(true)}
           className="px-4 py-2 bg-green-500 text-white rounded"
         >
           + Create Role
         </button>
+        {/* )} */}
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -98,7 +107,9 @@ const RolesPage = () => {
               <th className="p-3">Role</th>
               <th className="p-3">Permissions</th>
               <th className="p-3">Status</th>
+              {/* {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && ( */}
               <th className="p-3 text-center">Actions</th>
+              {/* )} */}
             </tr>
           </thead>
 
@@ -131,27 +142,30 @@ const RolesPage = () => {
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
+                {/* {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && ( */}
+                <>
+                  <td className="p-3 text-center flex gap-2 justify-center">
+                    <button
+                      onClick={() => toggleStatus(r._id, r.isActive)}
+                      className="px-3 py-1 text-xs bg-yellow-400 rounded"
+                    >
+                      {r.isActive ? "Deactivate" : "Activate"}
+                    </button>
 
-                <td className="p-3 text-center flex gap-2 justify-center">
-                  <button
-                    onClick={() => toggleStatus(r._id, r.isActive)}
-                    className="px-3 py-1 text-xs bg-yellow-400 rounded"
-                  >
-                    {r.isActive ? "Deactivate" : "Activate"}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setEditRole(r);
-                      setRoleName(r.name);
-                      setSelectedPermissions(r.permissions || []);
-                      setShowModal(true);
-                    }}
-                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                  >
-                    Edit
-                  </button>
-                </td>
+                    <button
+                      onClick={() => {
+                        setEditRole(r);
+                        setRoleName(r.name);
+                        setSelectedPermissions(r.permissions || []);
+                        setShowModal(true);
+                      }}
+                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </>
+                {/* )} */}
               </tr>
             ))}
           </tbody>
@@ -166,7 +180,7 @@ const RolesPage = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded w-80">
             <h3 className="mb-2">{editRole ? "Edit Role" : "Create Role"}</h3>
-
+            
             <input
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
@@ -174,15 +188,18 @@ const RolesPage = () => {
               placeholder="Role name"
             />
 
-            {/* ✅ PERMISSIONS CHECKBOX */}
             <div className="max-h-40 overflow-y-auto border p-2 rounded">
               {permissions.map((perm, index) => (
                 <label key={index} className="flex items-center gap-2 text-sm">
+                  {console.log(selectedPermissions)
+                  }
+                  {console.log(perm)}
                   <input
                     type="checkbox"
                     checked={selectedPermissions.includes(perm)}
                     onChange={(e) => {
                       if (e.target.checked) {
+                        console.log("hello")
                         setSelectedPermissions((prev) => [...prev, perm]);
                       } else {
                         setSelectedPermissions((prev) =>

@@ -266,7 +266,7 @@ export const getAllUser = async ({ id, page, limit, search }) => {
 export const getMe = async ({ id }) => {
   const user = await User.findById(id)
     .select("-password")
-    .populate("roles", "name");
+    .populate("roles", "name permissions isActive");
 
   if (!user) {
     throw new ApiError(404, "User not found");
