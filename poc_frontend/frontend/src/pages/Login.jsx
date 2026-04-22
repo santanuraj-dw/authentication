@@ -23,12 +23,13 @@ const Login = () => {
 
       const res = await Api.get("/auth/me");
       const userData = res?.data?.data;
-
+      // console.log(userData.roles[0].name)
       setUser(userData);
 
       toast.success("Login successful");
 
-      if (userData.role === "admin") {
+      if (userData.roles[0].name === "Admin") {
+        // console.log("hello")
         navigate("/admin");
       } else {
         navigate("/");

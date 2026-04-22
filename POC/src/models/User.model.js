@@ -40,11 +40,12 @@ const userSchema = new mongoose.Schema(
     //   default: null,
     // },
 
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
-    },
+    roles: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Role",
+      },
+    ],
   },
   { timestamps: true },
 );

@@ -177,9 +177,13 @@ export const changeStatusController = async (req, res) => {
 // change role
 export const changeRoleController = async (req, res) => {
   const { userId } = req.params;
-  const { role } = req.body;
+  const { roles } = req.body;
 
-  const user = await changeRole({ userId, role });
+  if (!Array.isArray(roles)) {
+    throw new ApiError(400, "Roles must be an array");
+  }
+
+  const user = await changeRole({ userId, roles });
 
   return res.status(200).json(new ApiResponse(200, "User role updated", user));
 };
@@ -187,7 +191,12 @@ export const changeRoleController = async (req, res) => {
 // get all
 export const getAllUserController = async (req, res) => {
   const { id } = req.user;
-  const users = await getAllUser(id);
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const search = req?.query?.search?.trim() || "";
+
+  const users = await getAllUser({id, page, limit, search});
 
   return res
     .status(200)
