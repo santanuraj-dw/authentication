@@ -14,4 +14,6 @@ export const PERMISSIONS = {
   ROLE_CREATE: "role:create",
   ROLE_UPDATE: "role:update",
   ROLE_DELETE: "role:delete",
+
+  PERMISSIONS_READ: "permissions_read"
 };

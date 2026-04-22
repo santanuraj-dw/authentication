@@ -6,7 +6,7 @@ import redis from "../config/redis.js";
 
 //token generation
 export const generateTokensAndSave = async (user) => {
-  const roles = user.roles.map(r=>({name: r.name, permissions: r.permissions}));
+  const roles = user.roles.map(r=>({name: r.name, permissions: r.permissions, isActive: r.isActive}));
   console.log("jwt",roles)
   const expiryInSeconds = 7 * 24 * 60 * 60;
   if (!user) {

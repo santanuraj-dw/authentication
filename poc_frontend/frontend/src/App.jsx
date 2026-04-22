@@ -8,11 +8,11 @@ import { AuthProvider } from "./context/AuthContext";
 import PublicRoute from "./components/PublicRoute";
 import VerifyOtp from "./pages/VerifyOtp";
 import EmailVerify from "./pages/EmailVerify";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import RolesPage from "./pages/Roles";
+import RolesPage from "./pages/admin/Roles";
 function App() {
   return (
     <AuthProvider>

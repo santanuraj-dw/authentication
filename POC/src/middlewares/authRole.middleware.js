@@ -5,7 +5,7 @@ const authorizeRoles = (...allowedRoles) => {
     if (!req.user || !req.user.roles) {
       throw new ApiError(401, "Unauthorized");
     }
-    // console.log("role check",req.user.roles)
+    console.log("role check",req.user.roles)
     const userRoles = req.user.roles.map((r) =>
       typeof r === "string" ? r : r.name,
     );

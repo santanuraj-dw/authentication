@@ -3,7 +3,7 @@ import ApiError from "../utils/ApiError.js";
 
 const authorizePermissions = (...requiredPermissions) => {
   return (req, _, next) => {
-    console.log(req.user.roles)
+    // console.log(req.user.roles)
     const userPermissions = req.user.roles.flatMap((r) => r.permissions);
 
     if (userPermissions.includes(PERMISSIONS.ALL)) {

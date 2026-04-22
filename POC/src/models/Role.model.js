@@ -10,10 +10,15 @@ const roleSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    permissions:{
+    permissions: {
       type: [String],
-      default: []
-    }
+      default: [],
+    },
+    
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true },
 );
