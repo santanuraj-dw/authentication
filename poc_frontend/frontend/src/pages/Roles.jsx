@@ -9,6 +9,8 @@ const RolesPage = () => {
   const [confirmRole, setConfirmRole] = useState(null);
   const [editRole, setEditRole] = useState(null);
   const [roleName, setRoleName] = useState("");
+  const [permissions, setPermissions] = useState([]);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
 
   const navigate = useNavigate();
 
@@ -21,16 +23,42 @@ const RolesPage = () => {
     }
   };
 
+  const fetchPermissions = async () => {
+    try {
+      const res = await Api.get("/roles/permissions");
+      setPermissions(res.data.data);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to fetch permissions",
+      );
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
+    fetchPermissions();
   }, []);
 
-  const createRole = async () => {
+  const saveRole = async () => {
     try {
-      await Api.post("/roles", { name: roleName });
-      toast.success("Role created");
+      if (editRole) {
+        await Api.patch(`/roles/${editRole._id}`, {
+          name: roleName,
+          permissions: selectedPermissions,
+        });
+        toast.success("Role updated");
+      } else {
+        await Api.post("/roles", {
+          name: roleName,
+          permissions: selectedPermissions,
+        });
+        toast.success("Role created");
+      }
+
       setShowModal(false);
       setRoleName("");
+      setSelectedPermissions([]);
+      setEditRole(null);
       fetchRoles();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed");
@@ -115,7 +143,8 @@ const RolesPage = () => {
                   <button
                     onClick={() => {
                       setEditRole(r);
-                      setRoleName(r.name); // pre-fill
+                      setRoleName(r.name);
+                      setSelectedPermissions(r.permissions || []);
                       setShowModal(true);
                     }}
                     className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
@@ -136,25 +165,52 @@ const RolesPage = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded w-80">
-            <h3 className="mb-2">Create Role</h3>
+            <h3 className="mb-2">{editRole ? "Edit Role" : "Create Role"}</h3>
 
             <input
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
-              className="border w-full p-2"
+              className="border w-full p-2 mb-3"
               placeholder="Role name"
             />
 
+            {/* ✅ PERMISSIONS CHECKBOX */}
+            <div className="max-h-40 overflow-y-auto border p-2 rounded">
+              {permissions.map((perm, index) => (
+                <label key={index} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedPermissions.includes(perm)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedPermissions((prev) => [...prev, perm]);
+                      } else {
+                        setSelectedPermissions((prev) =>
+                          prev.filter((p) => p !== perm),
+                        );
+                      }
+                    }}
+                  />
+                  {perm}
+                </label>
+              ))}
+            </div>
+
             <div className="flex gap-2 mt-3">
               <button
-                onClick={createRole}
+                onClick={saveRole}
                 className="bg-blue-500 text-white px-3 py-1"
               >
                 Save
               </button>
 
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setEditRole(null);
+                  setRoleName("");
+                  setSelectedPermissions([]);
+                }}
                 className="bg-gray-400 px-3 py-1"
               >
                 Cancel
@@ -163,6 +219,7 @@ const RolesPage = () => {
           </div>
         </div>
       )}
+
       {confirmRole && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow w-80 text-center">
