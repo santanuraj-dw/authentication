@@ -1,8 +1,9 @@
-import { PERMISSIONS } from "../constants/permissions";
-import ApiError from "../utils/ApiError";
+import { PERMISSIONS } from "../constants/permissions.js";
+import ApiError from "../utils/ApiError.js";
 
 const authorizePermissions = (...requiredPermissions) => {
   return (req, _, next) => {
+    console.log(req.user.roles)
     const userPermissions = req.user.roles.flatMap((r) => r.permissions);
 
     if (userPermissions.includes(PERMISSIONS.ALL)) {

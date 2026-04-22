@@ -85,7 +85,7 @@ export const resendOtp = async (data) => {
 //login
 export const loginUserService = async (data) => {
   const { email, password } = data;
-  const user = await User.findOne({ email }).populate("roles", "name");
+  const user = await User.findOne({ email }).populate("roles", "name permissions");
   if (!user) {
     throw new ApiError(400, "Invalid user");
   }

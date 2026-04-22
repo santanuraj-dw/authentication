@@ -1,0 +1,206 @@
+import React, { useEffect, useState } from "react";
+import Api from "../services/api";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
+const RolesPage = () => {
+  const [roles, setRoles] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [confirmRole, setConfirmRole] = useState(null);
+  const [editRole, setEditRole] = useState(null);
+  const [roleName, setRoleName] = useState("");
+
+  const navigate = useNavigate();
+
+  const fetchRoles = async () => {
+    try {
+      const res = await Api.get("/roles");
+      setRoles(res.data.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch roles");
+    }
+  };
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  const createRole = async () => {
+    try {
+      await Api.post("/roles", { name: roleName });
+      toast.success("Role created");
+      setShowModal(false);
+      setRoleName("");
+      fetchRoles();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed");
+    }
+  };
+
+  const toggleStatus = (id, currentStatus) => {
+    setConfirmRole({ id, currentStatus });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/admin")}
+            className="px-3 py-1 bg-gray-300 rounded"
+          >
+            ← Back
+          </button>
+
+          <h2 className="text-2xl font-bold">Roles Management</h2>
+        </div>
+
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-green-500 text-white rounded"
+        >
+          + Create Role
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-gray-200">
+            <tr>
+              <th className="p-3">Role</th>
+              <th className="p-3">Permissions</th>
+              <th className="p-3">Status</th>
+              <th className="p-3 text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {roles.map((r) => (
+              <tr key={r._id} className="border-t">
+                <td className="p-3 font-medium">{r.name}</td>
+
+                <td className="p-3">
+                  <div className="flex flex-wrap gap-1">
+                    {r.permissions?.map((p, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-1 bg-gray-200 text-xs rounded"
+                      >
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+
+                <td className="p-3">
+                  <span
+                    className={`px-2 py-1 text-xs rounded ${
+                      r.isActive
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {r.isActive ? "Active" : "Inactive"}
+                  </span>
+                </td>
+
+                <td className="p-3 text-center flex gap-2 justify-center">
+                  <button
+                    onClick={() => toggleStatus(r._id, r.isActive)}
+                    className="px-3 py-1 text-xs bg-yellow-400 rounded"
+                  >
+                    {r.isActive ? "Deactivate" : "Activate"}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setEditRole(r);
+                      setRoleName(r.name); // pre-fill
+                      setShowModal(true);
+                    }}
+                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                  >
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {roles.length === 0 && (
+          <div className="p-6 text-center text-gray-400">No roles found</div>
+        )}
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded w-80">
+            <h3 className="mb-2">Create Role</h3>
+
+            <input
+              value={roleName}
+              onChange={(e) => setRoleName(e.target.value)}
+              className="border w-full p-2"
+              placeholder="Role name"
+            />
+
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={createRole}
+                className="bg-blue-500 text-white px-3 py-1"
+              >
+                Save
+              </button>
+
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-400 px-3 py-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmRole && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl shadow w-80 text-center">
+            <p className="mb-4">
+              Are you sure you want to{" "}
+              <b>{confirmRole.currentStatus ? "Deactivate" : "Activate"}</b>{" "}
+              this role?
+            </p>
+
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => setConfirmRole(null)}
+                className="px-3 py-1 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    await Api.patch(`/roles/status/${confirmRole.id}`);
+                    toast.success("Role updated");
+                    setConfirmRole(null);
+                    fetchRoles();
+                  } catch {
+                    toast.error("Failed");
+                  }
+                }}
+                className="px-3 py-1 bg-yellow-500 rounded"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default RolesPage;

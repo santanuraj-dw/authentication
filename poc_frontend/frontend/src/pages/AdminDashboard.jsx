@@ -10,8 +10,8 @@ const AdminDashboard = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [totalPages, setTotalPages] = useState(1);
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [newRole, setNewRole] = useState("");
+  // const [showRoleModal, setShowRoleModal] = useState(false);
+  // const [newRole, setNewRole] = useState("");
   const [confirmUser, setConfirmUser] = useState(null);
   const [users, setUsers] = useState([]);
   const { setUser } = useAuth();
@@ -22,7 +22,7 @@ const AdminDashboard = () => {
     try {
       const res = await Api.get("/roles");
       setRoles(res.data.data);
-    } catch {
+    } catch (error) {
       const message = error.response?.data?.message || "Failed to fetch roles";
       toast.error(message);
     }
@@ -89,18 +89,18 @@ const AdminDashboard = () => {
     }
   };
 
-  const saveRole = async () => {
-    try {
-      await Api.post("/roles/", { name: newRole });
-      toast.success("Role created");
-      setShowRoleModal(false);
-      setNewRole("");
-      fetchRoles();
-    } catch (error) {
-      const message = error.response?.data?.message || "Failed";
-      toast.error(message);
-    }
-  };
+  // const saveRole = async () => {
+  //   try {
+  //     await Api.post("/roles/", { name: newRole });
+  //     toast.success("Role created");
+  //     setShowRoleModal(false);
+  //     setNewRole("");
+  //     fetchRoles();
+  //   } catch (error) {
+  //     const message = error.response?.data?.message || "Failed";
+  //     toast.error(message);
+  //   }
+  // };
 
   const handleLogout = async () => {
     await Api.post("/auth/logout");
@@ -110,12 +110,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
 
         <div className="flex items-center gap-3">
-  
           <input
             type="text"
             placeholder="Search user..."
@@ -127,14 +125,12 @@ const AdminDashboard = () => {
             className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
 
-
           <button
-            onClick={() => setShowRoleModal(true)}
+            onClick={() => navigate("/roles")}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
-            + Role
+            Manage Roles
           </button>
-
 
           <button
             onClick={handleLogout}
@@ -144,7 +140,6 @@ const AdminDashboard = () => {
           </button>
         </div>
       </div>
-
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm text-left">
@@ -325,7 +320,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {showRoleModal && (
+      {/* {showRoleModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow w-80">
             <h3 className="text-lg font-semibold mb-3">Create Role</h3>
@@ -354,7 +349,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {confirmUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">

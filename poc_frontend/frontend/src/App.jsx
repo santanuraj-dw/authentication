@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import RolesPage from "./pages/Roles";
 function App() {
   return (
     <AuthProvider>
@@ -47,6 +48,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/roles"
+            element={
+              <AdminRoute>
+                <RolesPage />
               </AdminRoute>
             }
           />

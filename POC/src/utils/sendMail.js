@@ -1,15 +1,21 @@
 import nodemailer from "nodemailer";
 
 export const sendEmail = async (email, otp) => {
+  console.log("user email", email)
+  console.log("my email", process.env.EMAIL_USER)
+  console.log("my password", process.env.EMAIL_PASS)
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    debug: true,
   });
 
-  await transporter.sendMail({
+  // console.log(transporter)
+
+ await transporter.sendMail({
     from: `"Your App Name" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify Your Account",
@@ -43,4 +49,6 @@ export const sendEmail = async (email, otp) => {
     </div>
   `,
   });
+
+  // console.log(res)
 };
