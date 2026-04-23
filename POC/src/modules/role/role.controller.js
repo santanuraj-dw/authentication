@@ -37,7 +37,7 @@ export const updateRoleController = async (req, res) => {
 
 //get all role permissions
 export const getPermissionsController = (req, res) => {
-  const permissions = Object.values(PERMISSIONS).filter((p) => p !== "all");
+  const permissions = Object.values(PERMISSIONS).filter((p) => p !== PERMISSIONS.SELECT_ALL);
   return res
     .status(200)
     .json(
