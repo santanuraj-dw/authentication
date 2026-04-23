@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { hasPermission } from "../../utils/authorize";
 import { useAuth } from "../../context/AuthContext";
 import { PERMISSIONS } from "../../constants/permissions";
+import { groupPermissions } from "../../utils/groupPermissions";
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -19,6 +20,7 @@ const RolesPage = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [order, setOrder] = useState("desc");
+  const [groupedPermissions, setGroupedPermissions] = useState({});
 
   const { user } = useAuth();
 
@@ -46,6 +48,8 @@ const RolesPage = () => {
   const fetchPermissions = async () => {
     try {
       const res = await Api.get("/roles/permissions");
+      const grouped = groupPermissions(res.data.data);
+      setGroupedPermissions(grouped);
       setPermissions(res.data.data);
     } catch (error) {
       toast.error(
@@ -92,6 +96,32 @@ const RolesPage = () => {
 
   const toggleStatus = (id, currentStatus) => {
     setConfirmRole({ id, currentStatus });
+  };
+
+  const isAllSelected = (module) => {
+    const modulePerms = groupedPermissions[module].map(
+      (action) => `${module}:${action}`,
+    );
+
+    return modulePerms.every((p) => selectedPermissions.includes(p));
+  };
+
+  const toggleModule = (module) => {
+    const modulePerms = groupedPermissions[module].map(
+      (action) => `${module}:${action}`,
+    );
+
+    const allSelected = modulePerms.every((p) =>
+      selectedPermissions.includes(p),
+    );
+
+    if (allSelected) {
+      setSelectedPermissions((prev) =>
+        prev.filter((p) => !modulePerms.includes(p)),
+      );
+    } else {
+      setSelectedPermissions((prev) => [...new Set([...prev, ...modulePerms])]);
+    }
   };
 
   return (
@@ -266,38 +296,51 @@ const RolesPage = () => {
               placeholder="Role name"
             />
 
-            <div className="max-h-40 overflow-y-auto border p-2 rounded">
-              {permissions.map((perm, index) => (
-                <label key={index} className="flex items-center gap-2 text-sm">
-                  {/* {console.log(selectedPermissions)} */}
-                  {/* {console.log(perm)} */}
-                  <input
-                    type="checkbox"
-                    checked={selectedPermissions.includes(perm)}
-                    // onChange={(e) => {
-                    //   if (e.target.checked) {
-                    //     // console.log("hello");
-                    //     setSelectedPermissions((prev) => [...prev, perm]);
-                    //   } else {
-                    //     setSelectedPermissions((prev) =>
-                    //       prev.filter((p) => p !== perm),
-                    //     );
-                    //   }
-                    // }}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedPermissions((prev) =>
-                          prev.includes(perm) ? prev : [...prev, perm],
-                        );
-                      } else {
-                        setSelectedPermissions((prev) =>
-                          prev.filter((p) => p !== perm),
-                        );
-                      }
-                    }}
-                  />
-                  {perm}
-                </label>
+            <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
+              {Object.keys(groupedPermissions).map((module) => (
+                <div key={module} className="border-b pb-2">
+                  
+                  <label className="flex items-center gap-2 font-semibold capitalize">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected(module)}
+                      onChange={() => toggleModule(module)}
+                    />
+                    {module}
+                  </label>
+
+                  <div className="ml-5 mt-2 space-y-1">
+                    {groupedPermissions[module].map((action) => {
+                      const permValue = `${module}:${action}`;
+
+                      return (
+                        <label
+                          key={permValue}
+                          className="flex items-center gap-2 text-sm capitalize"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedPermissions.includes(permValue)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedPermissions((prev) =>
+                                  prev.includes(permValue)
+                                    ? prev
+                                    : [...prev, permValue],
+                                );
+                              } else {
+                                setSelectedPermissions((prev) =>
+                                  prev.filter((p) => p !== permValue),
+                                );
+                              }
+                            }}
+                          />
+                          {action}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
             </div>
 
