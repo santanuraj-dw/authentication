@@ -3,6 +3,8 @@ import Api from "../../services/api";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import UserFilters from "../../components/otherComponents/UserFilters";
+import Pagination from "../../components/otherComponents/Pagination";
 
 const AdminDashboard = () => {
   const [roles, setRoles] = useState([]);
@@ -119,12 +121,28 @@ const AdminDashboard = () => {
     navigate("/login");
   };
 
+  const USER_SORT_OPTIONS = [
+    { label: "Default", value: "createdAt" },
+    { label: "Name", value: "username" },
+    { label: "Active", value: "isActive" },
+    { label: "Verified", value: "isVerified" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
         {/* <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2> */}
+        <UserFilters
+          search={search}
+          setSearch={setSearch}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          order={order}
+          setOrder={setOrder}
+          sortOptions={USER_SORT_OPTIONS}
+        />
 
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* <div className="flex items-center gap-3 flex-wrap">
           <input
             type="text"
             placeholder="Search user..."
@@ -159,7 +177,8 @@ const AdminDashboard = () => {
             <option value="desc">Desc</option>
           </select>
 
-          {/* <button
+          </div> */}
+        {/* <button
             onClick={() => navigate("/roles")}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
@@ -172,7 +191,6 @@ const AdminDashboard = () => {
           >
             Logout
           </button> */}
-        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -344,7 +362,7 @@ const AdminDashboard = () => {
           <div className="p-6 text-center text-gray-400">No users found</div>
         )}
 
-        <div className="flex justify-center items-center gap-3 p-4">
+        {/* <div className="flex justify-center items-center gap-3 p-4">
           <button
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
@@ -364,7 +382,9 @@ const AdminDashboard = () => {
           >
             Next
           </button>
-        </div>
+        </div> */}
+
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} />
       </div>
 
       {/* {showRoleModal && (

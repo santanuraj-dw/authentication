@@ -6,6 +6,8 @@ import { hasPermission } from "../../utils/authorize";
 import { useAuth } from "../../context/AuthContext";
 import { PERMISSIONS } from "../../constants/permissions";
 import { groupPermissions } from "../../utils/groupPermissions";
+import UserFilters from "../../components/otherComponents/UserFilters";
+import Pagination from "../../components/otherComponents/Pagination";
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -124,6 +126,12 @@ const RolesPage = () => {
     }
   };
 
+  const ROLE_SORT_OPTIONS = [
+    { label: "Default", value: "createdAt" },
+    { label: "Name", value: "name" },
+    { label: "Status", value: "isActive" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
@@ -138,7 +146,25 @@ const RolesPage = () => {
           <h2 className="text-2xl font-bold">Roles Management</h2>
         </div> */}
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <UserFilters
+          search={search}
+          setSearch={setSearch}
+          sortBy={sortBy}
+          setSortBy={(value) => {
+            setSortBy(value);
+            setPage(1); // reset page on sort
+          }}
+          order={order}
+          setOrder={setOrder}
+          sortOptions={ROLE_SORT_OPTIONS}
+          placeholder="Search role..."
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+        />
+
+        {/* <div className="flex items-center gap-3 flex-wrap">
           <input
             type="text"
             placeholder="Search role..."
@@ -170,7 +196,7 @@ const RolesPage = () => {
             <option value="asc">Asc</option>
             <option value="desc">Desc</option>
           </select>
-        </div>
+        </div> */}
         {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
         <button
           onClick={() => setShowModal(true)}
@@ -223,7 +249,7 @@ const RolesPage = () => {
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
-                {/* {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && ( */}
+                {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
                 <>
                   <td className="p-3 text-center flex gap-2 justify-center">
                     <button
@@ -251,33 +277,13 @@ const RolesPage = () => {
                     </button>
                   </td>
                 </>
-                {/* )} */}
+                )}
               </tr>
             ))}
           </tbody>
         </table>
 
-        <div className="flex justify-center items-center gap-3 p-4">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-
-          <span className="text-sm">
-            Page {page} of {totalPages}
-          </span>
-
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} />
 
         {roles.length === 0 && (
           <div className="p-6 text-center text-gray-400">No roles found</div>
@@ -299,7 +305,6 @@ const RolesPage = () => {
             <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
               {Object.keys(groupedPermissions).map((module) => (
                 <div key={module} className="border-b pb-2">
-                  
                   <label className="flex items-center gap-2 font-semibold capitalize">
                     <input
                       type="checkbox"

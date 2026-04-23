@@ -1,84 +1,71 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import "./app.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import { AuthProvider } from "./context/AuthContext";
-import PublicRoute from "./components/PublicRoute";
 import VerifyOtp from "./pages/VerifyOtp";
 import EmailVerify from "./pages/EmailVerify";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminRoute from "./components/AdminRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import RolesPage from "./pages/admin/Roles";
+
+
+import PublicRoute from "./components/PublicRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import PermissionRoute from "./components/PermissionRoute";
-import { PERMISSIONS } from "./constants/permissions";
+
 import AdminLayout from "./layouts/AdminLayout";
+
+
+import { PERMISSIONS } from "./constants/permissions";
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
 
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
+          {/* ================= PUBLIC ROUTES ================= */}
+          <Route element={<PublicRoute />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
 
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/verify-email" element={<EmailVerify />} />
-
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          {/* <Route path="/verify-reset-otp" element={<VerifyResetOtp />} /> */}
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout>
-                  <AdminDashboard />
-                </AdminLayout>
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/roles"
-            element={
-              <PermissionRoute permissions={[PERMISSIONS.ROLE_READ]}>
-                {/* <AdminRoute> */}
-                <AdminLayout>
-                  <RolesPage />
-                </AdminLayout>
-                {/* </AdminRoute> */}
-              </PermissionRoute>
-            }
-          />
+          {/* ================= PROTECTED ROUTES ================= */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Dashboard />} />
+          </Route>
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* ================= ADMIN ROUTES ================= */}
+          <Route element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
 
+              <Route path="/admin" element={<AdminDashboard />} />
+
+              {/* Permission-based route */}
+              <Route
+                path="/roles"
+                element={
+                  <PermissionRoute permissions={[PERMISSIONS.ROLE_READ]}>
+                    <RolesPage />
+                  </PermissionRoute>
+                }
+              />
+
+            </Route>
+          </Route>
+
+          {/* ================= FALLBACK ================= */}
           <Route path="*" element={<div>404 Not Found</div>} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>
