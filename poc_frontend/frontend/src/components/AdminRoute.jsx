@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { hasRole } from "../utils/authorize";
 
 const AdminRoute = ({ children }) => {
   const { user } = useAuth();
@@ -7,7 +8,11 @@ const AdminRoute = ({ children }) => {
 
   if (!user) return <Navigate to="/login" />;
 
-  if (user.roles[0].name !== "admin") {
+  // if (user.roles[0].name !== "admin") {
+  //   return <Navigate to="/" />;
+  // }
+
+  if (!hasRole(user, "admin")) {
     return <Navigate to="/" />;
   }
 

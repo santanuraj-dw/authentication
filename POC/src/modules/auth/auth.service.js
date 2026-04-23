@@ -85,7 +85,7 @@ export const resendOtp = async (data) => {
 //login
 export const loginUserService = async (data) => {
   const { email, password } = data;
-  const user = await User.findOne({ email }).populate("roles", "name");
+  const user = await User.findOne({ email }).populate("roles", "name permissions isActive");
   if (!user) {
     throw new ApiError(400, "Invalid user");
   }
@@ -266,7 +266,7 @@ export const getAllUser = async ({ id, page, limit, search }) => {
 export const getMe = async ({ id }) => {
   const user = await User.findById(id)
     .select("-password")
-    .populate("roles", "name");
+    .populate("roles", "name permissions isActive");
 
   if (!user) {
     throw new ApiError(404, "User not found");

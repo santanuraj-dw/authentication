@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Api from "../services/api";
+import Api from "../../services/api";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
@@ -11,7 +11,8 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState("");
   const [totalPages, setTotalPages] = useState(1);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [newRole, setNewRole] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  // const [newRole, setNewRole] = useState("");
   const [confirmUser, setConfirmUser] = useState(null);
   const [users, setUsers] = useState([]);
   const { setUser } = useAuth();
@@ -22,7 +23,7 @@ const AdminDashboard = () => {
     try {
       const res = await Api.get("/roles");
       setRoles(res.data.data);
-    } catch {
+    } catch (error) {
       const message = error.response?.data?.message || "Failed to fetch roles";
       toast.error(message);
     }
@@ -89,18 +90,18 @@ const AdminDashboard = () => {
     }
   };
 
-  const saveRole = async () => {
-    try {
-      await Api.post("/roles/", { name: newRole });
-      toast.success("Role created");
-      setShowRoleModal(false);
-      setNewRole("");
-      fetchRoles();
-    } catch (error) {
-      const message = error.response?.data?.message || "Failed";
-      toast.error(message);
-    }
-  };
+  // const saveRole = async () => {
+  //   try {
+  //     await Api.post("/roles/", { name: newRole });
+  //     toast.success("Role created");
+  //     setShowRoleModal(false);
+  //     setNewRole("");
+  //     fetchRoles();
+  //   } catch (error) {
+  //     const message = error.response?.data?.message || "Failed";
+  //     toast.error(message);
+  //   }
+  // };
 
   const handleLogout = async () => {
     await Api.post("/auth/logout");
@@ -110,12 +111,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
 
         <div className="flex items-center gap-3">
-  
           <input
             type="text"
             placeholder="Search user..."
@@ -127,14 +126,12 @@ const AdminDashboard = () => {
             className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
 
-
           <button
-            onClick={() => setShowRoleModal(true)}
+            onClick={() => navigate("/roles")}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
-            + Role
+            Manage Roles
           </button>
-
 
           <button
             onClick={handleLogout}
@@ -144,7 +141,6 @@ const AdminDashboard = () => {
           </button>
         </div>
       </div>
-
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm text-left">
@@ -214,7 +210,7 @@ const AdminDashboard = () => {
                     ))}
                   </div>
 
-                  <div className="border rounded p-2 max-h-24 overflow-y-auto">
+                  {/* <div className="border rounded p-2 max-h-24 overflow-y-auto">
                     {roles.map((role) => {
                       const selected =
                         selectedRoles[u._id] || u.roles.map((r) => r._id);
@@ -258,7 +254,7 @@ const AdminDashboard = () => {
                     className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded"
                   >
                     Save
-                  </button>
+                  </button> */}
                 </td>
 
                 <td className="p-3">
@@ -285,12 +281,25 @@ const AdminDashboard = () => {
                   </span>
                 </td>
 
-                <td className="p-3 text-center">
+                <td className="p-3 text-center flex gap-2 justify-center">
                   <button
                     onClick={() => toggleStatus(u._id, u.isActive)}
-                    className="px-3 py-1 text-xs rounded bg-yellow-400 hover:bg-yellow-500"
+                    className="px-3 py-1 text-xs rounded bg-yellow-400"
                   >
                     {u.isActive ? "Deactivate" : "Activate"}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSelectedUser(u);
+                      setSelectedRoles({
+                        [u._id]: u.roles.map((r) => r._id),
+                      });
+                      setShowRoleModal(true);
+                    }}
+                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                  >
+                    Change Role
                   </button>
                 </td>
               </tr>
@@ -325,7 +334,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {showRoleModal && (
+      {/* {showRoleModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow w-80">
             <h3 className="text-lg font-semibold mb-3">Create Role</h3>
@@ -354,7 +363,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {confirmUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
@@ -384,6 +393,86 @@ const AdminDashboard = () => {
                 className="px-3 py-1 bg-yellow-500 rounded"
               >
                 Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRoleModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl shadow w-96">
+            <h3 className="text-lg font-semibold mb-3">
+              Change Role - {selectedUser.username}
+            </h3>
+            
+            <div className="mb-3">
+              <p className="text-sm text-gray-500 mb-1">Assigned Roles:</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedUser.roles.map((r) => (
+                  <span
+                    key={r._id}
+                    className="px-2 py-1 bg-gray-200 text-xs rounded"
+                  >
+                    {r.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="border rounded p-2 max-h-40 overflow-y-auto">
+              {roles.map((role) => {
+                const selected = selectedRoles[selectedUser._id] || [];
+
+                return (
+                  <label
+                    key={role._id}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(role._id)}
+                      onChange={(e) => {
+                        let updated;
+
+                        if (e.target.checked) {
+                          updated = [...selected, role._id];
+                        } else {
+                          updated = selected.filter((id) => id !== role._id);
+                        }
+
+                        setSelectedRoles((prev) => ({
+                          ...prev,
+                          [selectedUser._id]: updated,
+                        }));
+                      }}
+                    />
+                    {role.name}
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setSelectedUser(null);
+                }}
+                className="px-3 py-1 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  await updateRoles(selectedUser._id);
+                  setShowRoleModal(false);
+                  setSelectedUser(null);
+                }}
+                className="px-3 py-1 bg-blue-500 text-white rounded"
+              >
+                Save
               </button>
             </div>
           </div>

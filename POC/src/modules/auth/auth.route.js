@@ -19,6 +19,9 @@ import { authLimiter } from "../../middlewares/ratelimiter.middleware.js";
 import { verifyJWT } from "../../middlewares/auth.middleware.js";
 import authorizeRoles from "../../middlewares/authRole.middleware.js";
 import { sendEmail } from "../../utils/sendMail.js";
+import authorizePermissions from "../../middlewares/authPermissions.middleware.js";
+import { PERMISSIONS } from "../../constants/permissions.js";
+import authorize from "../../middlewares/authorize.middleware.js";
 
 const router = Router();
 
@@ -36,20 +39,26 @@ router.get("/me", verifyJWT, asyncHandler(getMeController));
 router.patch(
   "/admin/status-change/:userId",
   verifyJWT,
-  authorizeRoles("admin"),
+  // authorizeRoles("admin"),
+  // authorizePermissions(PERMISSIONS.USER_UPDATE),
+  authorize([PERMISSIONS.USER_UPDATE]),
   asyncHandler(changeStatusController),
 );
 router.patch(
   "/admin/change-role/:userId",
   verifyJWT,
-  authorizeRoles("admin"),
+  // authorizeRoles("admin"),
+  // authorizePermissions(PERMISSIONS.USER_UPDATE),
+  authorize([PERMISSIONS.USER_UPDATE]),
   asyncHandler(changeRoleController),
 );
 
 router.get(
   "/users",
   verifyJWT,
-  authorizeRoles("admin"),
+  // authorizeRoles("admin"),
+  // authorizePermissions(PERMISSIONS.USER_READ),
+  authorize([PERMISSIONS.USER_READ]),
   asyncHandler(getAllUserController),
 );
 

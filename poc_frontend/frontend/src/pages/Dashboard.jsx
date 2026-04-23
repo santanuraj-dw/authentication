@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { hasPermission } from "../utils/authorize";
+import { PERMISSIONS } from "../constants/permissions";
 
 const Dashboard = () => {
   const { user, setUser } = useAuth();
@@ -29,10 +31,20 @@ const Dashboard = () => {
             <span>Email not verified</span>
             <button
               onClick={handleVerify}
-              className="text-xs font-semibold bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 hover:cursor-pointer transition">
+              className="text-xs font-semibold bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 hover:cursor-pointer transition"
+            >
               Verify
             </button>
           </div>
+        )}
+
+        {hasPermission(user, [PERMISSIONS.ROLE_READ]) && (
+          <button
+            onClick={() => navigate("/roles")}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          >
+            Manage Roles
+          </button>
         )}
 
         <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-3xl font-bold text-white shadow-md">
@@ -49,7 +61,8 @@ const Dashboard = () => {
 
         <button
           onClick={handleLogout}
-          className="w-full py-2.5 rounded-xl bg-red-500 text-white font-medium shadow hover:bg-red-600 hover:shadow-lg transition-all duration-200">
+          className="w-full py-2.5 rounded-xl bg-red-500 text-white font-medium shadow hover:bg-red-600 hover:shadow-lg transition-all duration-200"
+        >
           Logout
         </button>
       </div>

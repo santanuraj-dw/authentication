@@ -9,6 +9,16 @@ const roleSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
     },
+
+    permissions: {
+      type: [String],
+      default: [],
+    },
+    
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true },
 );

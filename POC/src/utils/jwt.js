@@ -6,19 +6,19 @@ import redis from "../config/redis.js";
 
 //token generation
 export const generateTokensAndSave = async (user) => {
-  const roleNames = user.roles.map(r=>r.name);
-  // console.log("jwt",roleNames)
+  const roles = user.roles.map(r=>({name: r.name, permissions: r.permissions, isActive: r.isActive}));
+  console.log("jwt",roles)
   const expiryInSeconds = 7 * 24 * 60 * 60;
   if (!user) {
     throw new ApiError(400, "User data is required for token generation");
   }
   const accessToken = jwt.sign(
-    { id: user._id, username: user.username, roles: roleNames },
+    { id: user._id, username: user.username, roles },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY },
   );
   const refreshToken = jwt.sign(
-    { id: user._id, roles: roleNames },
+    { id: user._id, roles },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY,

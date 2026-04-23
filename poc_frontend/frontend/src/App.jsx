@@ -8,10 +8,13 @@ import { AuthProvider } from "./context/AuthContext";
 import PublicRoute from "./components/PublicRoute";
 import VerifyOtp from "./pages/VerifyOtp";
 import EmailVerify from "./pages/EmailVerify";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import RolesPage from "./pages/admin/Roles";
+import PermissionRoute from "./components/PermissionRoute";
+import { PERMISSIONS } from "./constants/permissions";
 function App() {
   return (
     <AuthProvider>
@@ -48,6 +51,16 @@ function App() {
               <AdminRoute>
                 <AdminDashboard />
               </AdminRoute>
+            }
+          />
+          <Route
+            path="/roles"
+            element={
+              <PermissionRoute permissions={[PERMISSIONS.ROLE_READ]}>
+              {/* <AdminRoute> */}
+                <RolesPage />
+              {/* </AdminRoute> */}
+              </PermissionRoute>
             }
           />
 
