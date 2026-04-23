@@ -42,7 +42,7 @@ export const getPermissionsController = (req, res) => {
 
 //get all roles
 export const getRolesController = async (req, res) => {
-  const roles = await getRolesService();
+  const roles = await getRolesService(req.query);
 
   res.status(200).json(new ApiResponse(200, "Get role successfully", roles));
 };

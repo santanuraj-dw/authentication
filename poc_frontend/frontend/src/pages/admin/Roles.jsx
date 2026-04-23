@@ -14,6 +14,11 @@ const RolesPage = () => {
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState([]);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [order, setOrder] = useState("desc");
 
   const { user } = useAuth();
 
@@ -21,8 +26,18 @@ const RolesPage = () => {
 
   const fetchRoles = async () => {
     try {
-      const res = await Api.get("/roles");
-      setRoles(res.data.data);
+      const res = await Api.get("/roles", {
+        params: {
+          page,
+          limit: 3,
+          search,
+          sortBy,
+          order,
+        },
+      });
+      console.log(res.data.data.roles);
+      setRoles(res.data.data.roles);
+      setTotalPages(res.data.data.totalPages);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch roles");
     }
@@ -41,6 +56,9 @@ const RolesPage = () => {
 
   useEffect(() => {
     fetchRoles();
+  }, [page, search, sortBy, order]);
+
+  useEffect(() => {
     fetchPermissions();
   }, []);
 
@@ -77,27 +95,124 @@ const RolesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/admin")}
-            className="px-3 py-1 bg-gray-300 rounded"
-          >
-            ← Back
-          </button>
+    // <div className="min-h-screen bg-gray-100 p-6">
+    //   <div className="flex justify-between items-center mb-6">
+    //     <div className="flex items-center gap-3">
+    //       <button
+    //         onClick={() => navigate("/admin")}
+    //         className="px-3 py-1 bg-gray-300 rounded"
+    //       >
+    //         ← Back
+    //       </button>
 
-          <h2 className="text-2xl font-bold">Roles Management</h2>
+    //       <h2 className="text-2xl font-bold">Roles Management</h2>
+    //     </div>
+
+    //     <input
+    //       type="text"
+    //       placeholder="Search role..."
+    //       value={search}
+    //       onChange={(e) => {
+    //         setPage(1);
+    //         setSearch(e.target.value);
+    //       }}
+    //       className="border px-3 py-2 rounded"
+    //     />
+    //     <select
+    //       value={sortBy}
+    //       onChange={(e) => {
+    //         setSortBy(e.target.value);
+    //         setPage(1);
+    //       }}
+    //       className="border px-2 py-2 rounded"
+    //     >
+    //       <option value="createdAt">Default</option>
+    //       <option value="name">Name</option>
+    //       <option value="isActive">Status</option>
+    //     </select>
+
+    //     <select
+    //       value={order}
+    //       onChange={(e) => setOrder(e.target.value)}
+    //       className="border px-2 py-2 rounded"
+    //     >
+    //       <option value="asc">Asc</option>
+    //       <option value="desc">Desc</option>
+    //     </select>
+
+    //     {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
+    //     <button
+    //       onClick={() => setShowModal(true)}
+    //       className="px-4 py-2 bg-green-500 text-white rounded"
+    //     >
+    //       + Create Role
+    //     </button>
+    //     {/* )} */}
+    //   </div>
+    <div className="min-h-screen bg-gray-100 p-6">
+      {/* HEADER */}
+      <div className="flex flex-col gap-4 mb-6">
+        {/* Top Row */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/admin")}
+              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+            >
+              ← Back
+            </button>
+
+            <h2 className="text-2xl font-bold text-gray-800">
+              Roles Management
+            </h2>
+          </div>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          >
+            + Create Role
+          </button>
         </div>
 
-        {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded"
-        >
-          + Create Role
-        </button>
-        {/* )} */}
+        {/* Filters Row */}
+        <div className="flex flex-wrap gap-3 items-center bg-white p-3 rounded-lg shadow-sm">
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Search role..."
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            className="border px-3 py-2 rounded-lg w-60 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          {/* Sort By */}
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg focus:outline-none"
+          >
+            <option value="createdAt">Sort: Default</option>
+            <option value="name">Sort: Name</option>
+            <option value="isActive">Sort: Status</option>
+          </select>
+
+          {/* Order */}
+          <select
+            value={order}
+            onChange={(e) => setOrder(e.target.value)}
+            className="border px-3 py-2 rounded-lg focus:outline-none"
+          >
+            <option value="asc">Asc ↑</option>
+            <option value="desc">Desc ↓</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -156,7 +271,12 @@ const RolesPage = () => {
                       onClick={() => {
                         setEditRole(r);
                         setRoleName(r.name);
-                        setSelectedPermissions(r.permissions || []);
+                        // setSelectedPermissions(r.permissions || []);
+                        setSelectedPermissions(
+                          (r.permissions || []).map((p) =>
+                            typeof p === "string" ? p : p.name,
+                          ),
+                        );
                         setShowModal(true);
                       }}
                       className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
@@ -171,6 +291,28 @@ const RolesPage = () => {
           </tbody>
         </table>
 
+        <div className="flex justify-center items-center gap-3 p-4">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <span className="text-sm">
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+
         {roles.length === 0 && (
           <div className="p-6 text-center text-gray-400">No roles found</div>
         )}
@@ -180,7 +322,7 @@ const RolesPage = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded w-80">
             <h3 className="mb-2">{editRole ? "Edit Role" : "Create Role"}</h3>
-            
+
             <input
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
@@ -191,16 +333,26 @@ const RolesPage = () => {
             <div className="max-h-40 overflow-y-auto border p-2 rounded">
               {permissions.map((perm, index) => (
                 <label key={index} className="flex items-center gap-2 text-sm">
-                  {console.log(selectedPermissions)
-                  }
-                  {console.log(perm)}
+                  {/* {console.log(selectedPermissions)} */}
+                  {/* {console.log(perm)} */}
                   <input
                     type="checkbox"
                     checked={selectedPermissions.includes(perm)}
+                    // onChange={(e) => {
+                    //   if (e.target.checked) {
+                    //     // console.log("hello");
+                    //     setSelectedPermissions((prev) => [...prev, perm]);
+                    //   } else {
+                    //     setSelectedPermissions((prev) =>
+                    //       prev.filter((p) => p !== perm),
+                    //     );
+                    //   }
+                    // }}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        console.log("hello")
-                        setSelectedPermissions((prev) => [...prev, perm]);
+                        setSelectedPermissions((prev) =>
+                          prev.includes(perm) ? prev : [...prev, perm],
+                        );
                       } else {
                         setSelectedPermissions((prev) =>
                           prev.filter((p) => p !== perm),
