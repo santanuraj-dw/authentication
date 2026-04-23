@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import RolesPage from "./pages/admin/Roles";
 import PermissionRoute from "./components/PermissionRoute";
 import { PERMISSIONS } from "./constants/permissions";
+import AdminLayout from "./layouts/AdminLayout";
 function App() {
   return (
     <AuthProvider>
@@ -49,7 +50,9 @@ function App() {
             path="/admin"
             element={
               <AdminRoute>
-                <AdminDashboard />
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
               </AdminRoute>
             }
           />
@@ -57,9 +60,11 @@ function App() {
             path="/roles"
             element={
               <PermissionRoute permissions={[PERMISSIONS.ROLE_READ]}>
-              {/* <AdminRoute> */}
-                <RolesPage />
-              {/* </AdminRoute> */}
+                {/* <AdminRoute> */}
+                <AdminLayout>
+                  <RolesPage />
+                </AdminLayout>
+                {/* </AdminRoute> */}
               </PermissionRoute>
             }
           />

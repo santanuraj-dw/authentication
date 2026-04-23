@@ -15,6 +15,9 @@ const AdminDashboard = () => {
   // const [newRole, setNewRole] = useState("");
   const [confirmUser, setConfirmUser] = useState(null);
   const [users, setUsers] = useState([]);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [order, setOrder] = useState("desc");
+
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -22,7 +25,7 @@ const AdminDashboard = () => {
   const fetchRoles = async () => {
     try {
       const res = await Api.get("/roles");
-      setRoles(res.data.data);
+      setRoles(res.data.data.roles);
     } catch (error) {
       const message = error.response?.data?.message || "Failed to fetch roles";
       toast.error(message);
@@ -32,9 +35,16 @@ const AdminDashboard = () => {
   // all user fetch
   const fetchUsers = async () => {
     try {
-      const res = await Api.get(
-        `/auth/users?page=${page}&limit=2&search=${search}`,
-      );
+      const res = await Api.get("/auth/users", {
+        params: {
+          page,
+          limit: 2,
+          search,
+          sortBy,
+          order,
+        },
+      });
+
       setUsers(res.data.data.users);
       setTotalPages(res.data.data.totalPages);
     } catch (error) {
@@ -45,7 +55,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search]);
+  }, [page, search, sortBy, order]);
 
   useEffect(() => {
     fetchRoles();
@@ -112,9 +122,9 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+        {/* <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2> */}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <input
             type="text"
             placeholder="Search user..."
@@ -126,7 +136,30 @@ const AdminDashboard = () => {
             className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
 
-          <button
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg"
+          >
+            <option value="createdAt">Default</option>
+            <option value="username">Name</option>
+            <option value="isActive">Active</option>
+            <option value="isVerified">Verified</option>
+          </select>
+
+          <select
+            value={order}
+            onChange={(e) => setOrder(e.target.value)}
+            className="border px-3 py-2 rounded-lg"
+          >
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+          </select>
+
+          {/* <button
             onClick={() => navigate("/roles")}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
@@ -138,7 +171,7 @@ const AdminDashboard = () => {
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
           >
             Logout
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -405,7 +438,7 @@ const AdminDashboard = () => {
             <h3 className="text-lg font-semibold mb-3">
               Change Role - {selectedUser.username}
             </h3>
-            
+
             <div className="mb-3">
               <p className="text-sm text-gray-500 mb-1">Assigned Roles:</p>
               <div className="flex flex-wrap gap-1">

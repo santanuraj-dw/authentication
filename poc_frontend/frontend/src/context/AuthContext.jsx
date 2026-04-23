@@ -12,11 +12,11 @@ export const AuthProvider = ({ children }) => {
 
   Api.get("/auth/me")
     .then((res) => {
-      console.log("User fetched:", res);
+      // console.log("User fetched:", res);
       setUser(res.data.data);
     })
     .catch((err) => {
-      console.log("Auth error:", err?.response);
+      // console.log("Auth error:", err?.response);
       setUser(null);
     })
 }, []);

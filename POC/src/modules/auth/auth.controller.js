@@ -195,8 +195,10 @@ export const getAllUserController = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 5;
   const search = req?.query?.search?.trim() || "";
+  const sortBy = req.query.sortBy || "createdAt";
+  const order = req.query.order || "desc";
 
-  const users = await getAllUser({id, page, limit, search});
+  const users = await getAllUser({ id, page, limit, search, sortBy, order });
 
   return res
     .status(200)

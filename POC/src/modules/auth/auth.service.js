@@ -85,7 +85,10 @@ export const resendOtp = async (data) => {
 //login
 export const loginUserService = async (data) => {
   const { email, password } = data;
-  const user = await User.findOne({ email }).populate("roles", "name permissions isActive");
+  const user = await User.findOne({ email }).populate(
+    "roles",
+    "name permissions isActive",
+  );
   if (!user) {
     throw new ApiError(400, "Invalid user");
   }
@@ -168,7 +171,7 @@ export const refreshTokenService = async (userId, oldRefreshToken) => {
     throw new ApiError(401, "Invalid refresh token");
   }
 
-  const user = await User.findById(userId).populate("role","name");
+  const user = await User.findById(userId).populate("role", "name");
   if (!user) {
     throw new ApiError(400, "User not found");
   }
@@ -227,10 +230,16 @@ export const changeRole = async ({ userId, roles }) => {
 };
 
 //get all users
-export const getAllUser = async ({ id, page, limit, search }) => {
+export const getAllUser = async ({
+  id,
+  page,
+  limit,
+  search,
+  sortBy,
+  order,
+}) => {
   const skip = (page - 1) * limit;
 
-  // console.log("SEARCH VALUE:", search);
   const searchQuery = search
     ? {
         $or: [
@@ -245,11 +254,20 @@ export const getAllUser = async ({ id, page, limit, search }) => {
     ...searchQuery,
   };
 
-  // console.log(id);
+  const sortOptions = {
+    name: "username",
+    status: "isActive",
+    verified: "isVerified",
+    createdAt: "createdAt",
+  };
+
+  const sortField = sortOptions[sortBy] || "createdAt";
+  const sortOrder = order === "asc" ? 1 : -1;
+
   const users = await User.find(query)
     .populate("roles", "name")
     .select("-password")
-    .sort({ createdAt: -1 })
+    .sort({ [sortField]: sortOrder })
     .skip(skip)
     .limit(limit);
 

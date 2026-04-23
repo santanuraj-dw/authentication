@@ -1,7 +1,12 @@
 import { PERMISSIONS } from "../../constants/permissions.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-import { changeStatus, createRoleService, getRolesService, updateRole } from "./role.service.js";
+import {
+  changeStatus,
+  createRoleService,
+  getRolesService,
+  updateRole,
+} from "./role.service.js";
 import { createRoleValidation } from "./role.validation.js";
 
 // create role
@@ -42,9 +47,28 @@ export const getPermissionsController = (req, res) => {
 
 //get all roles
 export const getRolesController = async (req, res) => {
-  const roles = await getRolesService(req.query);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const search = req?.query?.search?.trim() || "";
+  const allowedSort = ["name", "isActive", "createdAt"];
+  const sortBy = allowedSort.includes(req.query.sortBy)
+    ? req.query.sortBy
+    : "createdAt";
+  const order = req.query.order === "asc" ? "asc" : "desc";
+  const isActive = req.query.isActive;
 
-  res.status(200).json(new ApiResponse(200, "Get role successfully", roles));
+  const roles = await getRolesService({
+    page,
+    limit,
+    search,
+    sortBy,
+    order,
+    isActive,
+  });
+
+  res.status(200).json(
+    new ApiResponse(200, "Get role successfully", roles)
+  );
 };
 
 // active/inactive role

@@ -95,89 +95,20 @@ const RolesPage = () => {
   };
 
   return (
-    // <div className="min-h-screen bg-gray-100 p-6">
-    //   <div className="flex justify-between items-center mb-6">
-    //     <div className="flex items-center gap-3">
-    //       <button
-    //         onClick={() => navigate("/admin")}
-    //         className="px-3 py-1 bg-gray-300 rounded"
-    //       >
-    //         ← Back
-    //       </button>
-
-    //       <h2 className="text-2xl font-bold">Roles Management</h2>
-    //     </div>
-
-    //     <input
-    //       type="text"
-    //       placeholder="Search role..."
-    //       value={search}
-    //       onChange={(e) => {
-    //         setPage(1);
-    //         setSearch(e.target.value);
-    //       }}
-    //       className="border px-3 py-2 rounded"
-    //     />
-    //     <select
-    //       value={sortBy}
-    //       onChange={(e) => {
-    //         setSortBy(e.target.value);
-    //         setPage(1);
-    //       }}
-    //       className="border px-2 py-2 rounded"
-    //     >
-    //       <option value="createdAt">Default</option>
-    //       <option value="name">Name</option>
-    //       <option value="isActive">Status</option>
-    //     </select>
-
-    //     <select
-    //       value={order}
-    //       onChange={(e) => setOrder(e.target.value)}
-    //       className="border px-2 py-2 rounded"
-    //     >
-    //       <option value="asc">Asc</option>
-    //       <option value="desc">Desc</option>
-    //     </select>
-
-    //     {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
-    //     <button
-    //       onClick={() => setShowModal(true)}
-    //       className="px-4 py-2 bg-green-500 text-white rounded"
-    //     >
-    //       + Create Role
-    //     </button>
-    //     {/* )} */}
-    //   </div>
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* HEADER */}
-      <div className="flex flex-col gap-4 mb-6">
-        {/* Top Row */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/admin")}
-              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              ← Back
-            </button>
-
-            <h2 className="text-2xl font-bold text-gray-800">
-              Roles Management
-            </h2>
-          </div>
-
+      <div className="flex justify-between items-center mb-6">
+        {/* <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            onClick={() => navigate("/admin")}
+            className="px-3 py-1 bg-gray-300 rounded"
           >
-            + Create Role
+            ← Back
           </button>
-        </div>
 
-        {/* Filters Row */}
-        <div className="flex flex-wrap gap-3 items-center bg-white p-3 rounded-lg shadow-sm">
-          {/* Search */}
+          <h2 className="text-2xl font-bold">Roles Management</h2>
+        </div> */}
+
+        <div className="flex items-center gap-3 flex-wrap">
           <input
             type="text"
             placeholder="Search role..."
@@ -186,33 +117,38 @@ const RolesPage = () => {
               setPage(1);
               setSearch(e.target.value);
             }}
-            className="border px-3 py-2 rounded-lg w-60 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border px-3 py-2 rounded"
           />
-
-          {/* Sort By */}
           <select
             value={sortBy}
             onChange={(e) => {
               setSortBy(e.target.value);
               setPage(1);
             }}
-            className="border px-3 py-2 rounded-lg focus:outline-none"
+            className="border px-2 py-2 rounded"
           >
-            <option value="createdAt">Sort: Default</option>
-            <option value="name">Sort: Name</option>
-            <option value="isActive">Sort: Status</option>
+            <option value="createdAt">Default</option>
+            <option value="name">Name</option>
+            <option value="isActive">Status</option>
           </select>
 
-          {/* Order */}
           <select
             value={order}
             onChange={(e) => setOrder(e.target.value)}
-            className="border px-3 py-2 rounded-lg focus:outline-none"
+            className="border px-2 py-2 rounded"
           >
-            <option value="asc">Asc ↑</option>
-            <option value="desc">Desc ↓</option>
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
           </select>
         </div>
+        {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-green-500 text-white rounded"
+        >
+          + Create Role
+        </button>
+        {/* )} */}
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
