@@ -11,23 +11,22 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import RolesPage from "./pages/admin/Roles";
 
-
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
 import PermissionRoute from "./components/PermissionRoute";
+import RoleRoute from "./components/AdminRoute";
 
 import AdminLayout from "./layouts/AdminLayout";
 
-
 import { PERMISSIONS } from "./constants/permissions";
+import AdminRoute from "./components/AdminRoute";
+import ProjectManagerDashboard from "./pages/project_manager/ProjectManagerDashboard";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-
           {/* ================= PUBLIC ROUTES ================= */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
@@ -39,15 +38,14 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* ================= PROTECTED ROUTES ================= */}
+          {/*  PROTECTED ROUTES */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
           </Route>
 
-          {/* ================= ADMIN ROUTES ================= */}
+          {/* ADMIN ROUTES */}
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
-
               <Route path="/admin" element={<AdminDashboard />} />
 
               {/* Permission-based route */}
@@ -59,13 +57,22 @@ function App() {
                   </PermissionRoute>
                 }
               />
-
             </Route>
           </Route>
+          {/* PROJECT MANAGER ROUTES */}
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="/pm-dashboard"
+              element={
+                <PermissionRoute permissions={[PERMISSIONS.PROJECT_READ]}>
+                  <ProjectManagerDashboard />
+                </PermissionRoute>
+              }
+            />
+          </Route>
 
-          {/* ================= FALLBACK ================= */}
+          {/* FALLBACK */}
           <Route path="*" element={<div>404 Not Found</div>} />
-
         </Routes>
       </BrowserRouter>
     </AuthProvider>

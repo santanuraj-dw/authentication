@@ -214,9 +214,9 @@ const RolesPage = () => {
               <th className="p-3">Role</th>
               <th className="p-3">Permissions</th>
               <th className="p-3">Status</th>
-              {/* {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && ( */}
+              {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
               <th className="p-3 text-center">Actions</th>
-              {/* )} */}
+               )} 
             </tr>
           </thead>
 
