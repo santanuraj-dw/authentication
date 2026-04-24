@@ -7,25 +7,26 @@ import {
 } from "./permission.controller.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { verifyJWT } from "../../middlewares/auth.middleware.js";
+import { PERMISSIONS } from "../../constants/permissions.js";
 
 const router = Router();
 
 router.get(
   "/",
   verifyJWT,
-  authorize(["permission_read"]),
+  authorize([PERMISSIONS.PERMISSIONS_READ]),
   asyncHandler(getAllPermissions),
 );
 router.patch(
   "/:id",
   verifyJWT,
-  authorize(["permission_update"]),
+  authorize([PERMISSIONS.PERMISSIONS_UPDATE]),
   asyncHandler(updatePermission),
 );
 router.patch(
   "/status/:id",
   verifyJWT,
-  authorize(["permission_update"]),
+  authorize([PERMISSIONS.PERMISSIONS_UPDATE]),
   asyncHandler(changePermissionStatus),
 );
 

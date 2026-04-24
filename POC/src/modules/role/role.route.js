@@ -23,13 +23,13 @@ router.post(
   asyncHandler(createRoleController),
 );
 
-router.get(
-  "/permissions",
-  verifyJWT,
-  // authorizeRoles("admin"),
-  authorize([PERMISSIONS.PERMISSIONS_READ]),
-  asyncHandler(getPermissionsController),
-);
+// router.get(
+//   "/permissions",
+//   // verifyJWT,
+//   // authorizeRoles("admin"),
+//   authorize([PERMISSIONS.PERMISSIONS_READ]),
+//   asyncHandler(getPermissionsController),
+// );
 
 router.get(
   "/",
