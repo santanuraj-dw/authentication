@@ -69,11 +69,52 @@ export const changeStatus = async (roleId) => {
   role.isActive = !role.isActive;
 
   await role.save();
-  
+
   return role;
 };
 
 //get roles
-export const getRolesService = async () => {
-  return await Role.find({ name: { $ne: "admin" } });
+export const getRolesService = async (query) => {
+  let {
+    page = 1,
+    limit = 10,
+    search = "",
+    sortBy = "createdAt",
+    order = "desc",
+    isActive,
+  } = query;
+
+  // convert types
+  page = parseInt(page);
+  limit = parseInt(limit);
+
+  const filter = {
+    name: { $ne: "admin" },
+  };
+
+  if (search) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  if (isActive !== undefined) {
+    filter.isActive = isActive === "true";
+  }
+
+  const sortOrder = order === "asc" ? 1 : -1;
+  const sort = { [sortBy]: sortOrder };
+
+  const roles = await Role.find(filter)
+    .sort(sort)
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  const total = await Role.countDocuments(filter);
+
+  return {
+    roles,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 };
+

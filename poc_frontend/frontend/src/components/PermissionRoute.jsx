@@ -4,7 +4,7 @@ import { hasPermission } from "../utils/authorize";
 
 const PermissionRoute = ({ children, permissions }) => {
   const { user } = useAuth();
-  console.log(user);
+  // console.log(user);
   if (!user) return <Navigate to="/login" />;
 
   if (!hasPermission(user, permissions)) {

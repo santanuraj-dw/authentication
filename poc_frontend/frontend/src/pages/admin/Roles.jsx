@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { hasPermission } from "../../utils/authorize";
 import { useAuth } from "../../context/AuthContext";
 import { PERMISSIONS } from "../../constants/permissions";
+import { groupPermissions } from "../../utils/groupPermissions";
+import UserFilters from "../../components/otherComponents/UserFilters";
+import Pagination from "../../components/otherComponents/Pagination";
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -14,6 +17,12 @@ const RolesPage = () => {
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState([]);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [order, setOrder] = useState("desc");
+  const [groupedPermissions, setGroupedPermissions] = useState({});
 
   const { user } = useAuth();
 
@@ -21,8 +30,18 @@ const RolesPage = () => {
 
   const fetchRoles = async () => {
     try {
-      const res = await Api.get("/roles");
-      setRoles(res.data.data);
+      const res = await Api.get("/roles", {
+        params: {
+          page,
+          limit: 3,
+          search,
+          sortBy,
+          order,
+        },
+      });
+      console.log(res.data.data.roles);
+      setRoles(res.data.data.roles);
+      setTotalPages(res.data.data.totalPages);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch roles");
     }
@@ -31,6 +50,8 @@ const RolesPage = () => {
   const fetchPermissions = async () => {
     try {
       const res = await Api.get("/roles/permissions");
+      const grouped = groupPermissions(res.data.data);
+      setGroupedPermissions(grouped);
       setPermissions(res.data.data);
     } catch (error) {
       toast.error(
@@ -41,6 +62,9 @@ const RolesPage = () => {
 
   useEffect(() => {
     fetchRoles();
+  }, [page, search, sortBy, order]);
+
+  useEffect(() => {
     fetchPermissions();
   }, []);
 
@@ -76,10 +100,42 @@ const RolesPage = () => {
     setConfirmRole({ id, currentStatus });
   };
 
+  const isAllSelected = (module) => {
+    const modulePerms = groupedPermissions[module].map(
+      (action) => `${module}:${action}`,
+    );
+
+    return modulePerms.every((p) => selectedPermissions.includes(p));
+  };
+
+  const toggleModule = (module) => {
+    const modulePerms = groupedPermissions[module].map(
+      (action) => `${module}:${action}`,
+    );
+
+    const allSelected = modulePerms.every((p) =>
+      selectedPermissions.includes(p),
+    );
+
+    if (allSelected) {
+      setSelectedPermissions((prev) =>
+        prev.filter((p) => !modulePerms.includes(p)),
+      );
+    } else {
+      setSelectedPermissions((prev) => [...new Set([...prev, ...modulePerms])]);
+    }
+  };
+
+  const ROLE_SORT_OPTIONS = [
+    { label: "Default", value: "createdAt" },
+    { label: "Name", value: "name" },
+    { label: "Status", value: "isActive" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/admin")}
             className="px-3 py-1 bg-gray-300 rounded"
@@ -88,8 +144,59 @@ const RolesPage = () => {
           </button>
 
           <h2 className="text-2xl font-bold">Roles Management</h2>
-        </div>
+        </div> */}
 
+        <UserFilters
+          search={search}
+          setSearch={setSearch}
+          sortBy={sortBy}
+          setSortBy={(value) => {
+            setSortBy(value);
+            setPage(1); // reset page on sort
+          }}
+          order={order}
+          setOrder={setOrder}
+          sortOptions={ROLE_SORT_OPTIONS}
+          placeholder="Search role..."
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+        />
+
+        {/* <div className="flex items-center gap-3 flex-wrap">
+          <input
+            type="text"
+            placeholder="Search role..."
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            className="border px-3 py-2 rounded"
+          />
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+            }}
+            className="border px-2 py-2 rounded"
+          >
+            <option value="createdAt">Default</option>
+            <option value="name">Name</option>
+            <option value="isActive">Status</option>
+          </select>
+
+          <select
+            value={order}
+            onChange={(e) => setOrder(e.target.value)}
+            className="border px-2 py-2 rounded"
+          >
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+          </select>
+        </div> */}
         {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
         <button
           onClick={() => setShowModal(true)}
@@ -107,9 +214,9 @@ const RolesPage = () => {
               <th className="p-3">Role</th>
               <th className="p-3">Permissions</th>
               <th className="p-3">Status</th>
-              {/* {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && ( */}
+              {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
               <th className="p-3 text-center">Actions</th>
-              {/* )} */}
+               )} 
             </tr>
           </thead>
 
@@ -142,7 +249,7 @@ const RolesPage = () => {
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
-                {/* {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && ( */}
+                {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
                 <>
                   <td className="p-3 text-center flex gap-2 justify-center">
                     <button
@@ -156,7 +263,12 @@ const RolesPage = () => {
                       onClick={() => {
                         setEditRole(r);
                         setRoleName(r.name);
-                        setSelectedPermissions(r.permissions || []);
+                        // setSelectedPermissions(r.permissions || []);
+                        setSelectedPermissions(
+                          (r.permissions || []).map((p) =>
+                            typeof p === "string" ? p : p.name,
+                          ),
+                        );
                         setShowModal(true);
                       }}
                       className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
@@ -165,11 +277,13 @@ const RolesPage = () => {
                     </button>
                   </td>
                 </>
-                {/* )} */}
+                )}
               </tr>
             ))}
           </tbody>
         </table>
+
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} />
 
         {roles.length === 0 && (
           <div className="p-6 text-center text-gray-400">No roles found</div>
@@ -180,7 +294,7 @@ const RolesPage = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded w-80">
             <h3 className="mb-2">{editRole ? "Edit Role" : "Create Role"}</h3>
-            
+
             <input
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
@@ -188,28 +302,50 @@ const RolesPage = () => {
               placeholder="Role name"
             />
 
-            <div className="max-h-40 overflow-y-auto border p-2 rounded">
-              {permissions.map((perm, index) => (
-                <label key={index} className="flex items-center gap-2 text-sm">
-                  {console.log(selectedPermissions)
-                  }
-                  {console.log(perm)}
-                  <input
-                    type="checkbox"
-                    checked={selectedPermissions.includes(perm)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        console.log("hello")
-                        setSelectedPermissions((prev) => [...prev, perm]);
-                      } else {
-                        setSelectedPermissions((prev) =>
-                          prev.filter((p) => p !== perm),
-                        );
-                      }
-                    }}
-                  />
-                  {perm}
-                </label>
+            <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
+              {Object.keys(groupedPermissions).map((module) => (
+                <div key={module} className="border-b pb-2">
+                  <label className="flex items-center gap-2 font-semibold capitalize">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected(module)}
+                      onChange={() => toggleModule(module)}
+                    />
+                    {module}
+                  </label>
+
+                  <div className="ml-5 mt-2 space-y-1">
+                    {groupedPermissions[module].map((action) => {
+                      const permValue = `${module}:${action}`;
+
+                      return (
+                        <label
+                          key={permValue}
+                          className="flex items-center gap-2 text-sm capitalize"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedPermissions.includes(permValue)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedPermissions((prev) =>
+                                  prev.includes(permValue)
+                                    ? prev
+                                    : [...prev, permValue],
+                                );
+                              } else {
+                                setSelectedPermissions((prev) =>
+                                  prev.filter((p) => p !== permValue),
+                                );
+                              }
+                            }}
+                          />
+                          {action}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
             </div>
 
