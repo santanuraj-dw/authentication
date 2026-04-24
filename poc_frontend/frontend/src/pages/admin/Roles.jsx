@@ -126,6 +126,20 @@ const RolesPage = () => {
     }
   };
 
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setOrder("asc");
+    }
+  };
+
+  const getArrow = (field) => {
+    if (sortBy !== field) return "↕️";
+    return order === "asc" ? "⬆️" : "⬇️";
+  };
+
   const ROLE_SORT_OPTIONS = [
     { label: "Default", value: "createdAt" },
     { label: "Name", value: "name" },
@@ -149,14 +163,6 @@ const RolesPage = () => {
         <UserFilters
           search={search}
           setSearch={setSearch}
-          sortBy={sortBy}
-          setSortBy={(value) => {
-            setSortBy(value);
-            setPage(1); // reset page on sort
-          }}
-          order={order}
-          setOrder={setOrder}
-          sortOptions={ROLE_SORT_OPTIONS}
           placeholder="Search role..."
           onSearchChange={(value) => {
             setSearch(value);
@@ -211,12 +217,25 @@ const RolesPage = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-200">
             <tr>
-              <th className="p-3">Role</th>
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("name")}
+              >
+                Role {getArrow("name")}
+              </th>
+
               <th className="p-3">Permissions</th>
-              <th className="p-3">Status</th>
-              {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-              <th className="p-3 text-center">Actions</th>
-               )} 
+
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("isActive")}
+              >
+                Status {getArrow("isActive")}
+              </th>
+
+              {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
+                <th className="p-3 text-center">Actions</th>
+              )}
             </tr>
           </thead>
 
@@ -250,33 +269,33 @@ const RolesPage = () => {
                   </span>
                 </td>
                 {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-                <>
-                  <td className="p-3 text-center flex gap-2 justify-center">
-                    <button
-                      onClick={() => toggleStatus(r._id, r.isActive)}
-                      className="px-3 py-1 text-xs bg-yellow-400 rounded"
-                    >
-                      {r.isActive ? "Deactivate" : "Activate"}
-                    </button>
+                  <>
+                    <td className="p-3 text-center flex gap-2 justify-center">
+                      <button
+                        onClick={() => toggleStatus(r._id, r.isActive)}
+                        className="px-3 py-1 text-xs bg-yellow-400 rounded"
+                      >
+                        {r.isActive ? "Deactivate" : "Activate"}
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setEditRole(r);
-                        setRoleName(r.name);
-                        // setSelectedPermissions(r.permissions || []);
-                        setSelectedPermissions(
-                          (r.permissions || []).map((p) =>
-                            typeof p === "string" ? p : p.name,
-                          ),
-                        );
-                        setShowModal(true);
-                      }}
-                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </>
+                      <button
+                        onClick={() => {
+                          setEditRole(r);
+                          setRoleName(r.name);
+                          // setSelectedPermissions(r.permissions || []);
+                          setSelectedPermissions(
+                            (r.permissions || []).map((p) =>
+                              typeof p === "string" ? p : p.name,
+                            ),
+                          );
+                          setShowModal(true);
+                        }}
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </>
                 )}
               </tr>
             ))}

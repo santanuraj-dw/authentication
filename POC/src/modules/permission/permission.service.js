@@ -1,40 +1,87 @@
 import { Permission } from "../../models/Permission.model.js";
 import ApiError from "../../utils/ApiError.js";
 
-
 // get all permissions
+// export const getAllPermissionsService = async (query) => {
+//   const {
+//     page = 1,
+//     limit = 10,
+//     search = "",
+//     sortBy = "createdAt",
+//     order = "desc",
+//   } = query;
+
+//   const filter = {
+//     name: { $regex: search, $options: "i" },
+//   };
+
+//   const skip = (page - 1) * limit;
+
+//   const permissions = await Permission.find(filter)
+//     .sort({ [sortBy]: order === "asc" ? 1 : -1 })
+//     .skip(skip)
+//     .limit(Number(limit));
+
+//   const total = await Permission.countDocuments(filter);
+
+//   return {
+//     data: permissions,
+//     pagination: {
+//       total,
+//       page: Number(page),
+//       pages: Math.ceil(total / limit),
+//     },
+//   };
+// };
 export const getAllPermissionsService = async (query) => {
   const {
+    search = "",
     page = 1,
     limit = 10,
-    search = "",
-    sortBy = "createdAt",
-    order = "desc",
+    sortBy = "name",
+    order = "asc",
   } = query;
-
-  const filter = {
-    name: { $regex: search, $options: "i" },
-  };
 
   const skip = (page - 1) * limit;
 
-  const permissions = await Permission.find(filter)
-    .sort({ [sortBy]: order === "asc" ? 1 : -1 })
-    .skip(skip)
-    .limit(Number(limit));
+  const matchStage = search ? { group: { $regex: search, $options: "i" } } : {};
 
-  const total = await Permission.countDocuments(filter);
+  const sortField = sortBy === "name" ? "_id" : sortBy;
+  const sortOrder = order === "asc" ? 1 : -1;
+
+  const groups = await Permission.aggregate([
+    { $match: matchStage },
+
+    {
+      $group: {
+        _id: "$group",
+        permissions: {
+          $push: {
+            _id: "$_id",
+            name: "$name",
+            isActive: "$isActive",
+          },
+        },
+      },
+    },
+
+    { $sort: { [sortField]: sortOrder } },
+
+    { $skip: skip },
+    { $limit: Number(limit) },
+  ]);
+
+  const totalGroups = await Permission.distinct("group", matchStage);
 
   return {
-    data: permissions,
+    data: groups,
     pagination: {
-      total,
+      total: totalGroups.length,
       page: Number(page),
-      pages: Math.ceil(total / limit),
+      pages: Math.ceil(totalGroups.length / limit),
     },
   };
 };
-
 
 // update permissions
 export const updatePermissionService = async (id, body) => {
@@ -58,7 +105,6 @@ export const updatePermissionService = async (id, body) => {
 
   return updated;
 };
-
 
 //change permissions status
 export const changePermissionStatusService = async (id) => {
