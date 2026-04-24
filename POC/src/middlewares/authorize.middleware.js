@@ -12,17 +12,17 @@ const authorize = (requiredPermissions = []) => {
         : r
     );
 
-    console.log("roles", roles)
+    // console.log("roles", roles)
 
     const activeRoles = roles.filter((r) => r.isActive);
-    console.log("activeRoles", activeRoles)
+    // console.log("activeRoles", activeRoles)
 
     if (activeRoles.length === 0) {
       throw new ApiError(403, "All roles are inactive");
     }
 
     const isAdmin = activeRoles.some((r) => r.name === "admin");
-    console.log("isAdmin", isAdmin)
+    // console.log("isAdmin", isAdmin)
     if (isAdmin) {
       return next();
     }
@@ -31,7 +31,7 @@ const authorize = (requiredPermissions = []) => {
       (r) => r.permissions || []
     );
     
-    console.log("userPermissions", userPermissions)
+    // console.log("userPermissions", userPermissions)
 
     const uniquePermissions = [...new Set(userPermissions)];
 
