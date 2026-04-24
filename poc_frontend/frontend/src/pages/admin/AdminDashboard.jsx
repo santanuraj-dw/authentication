@@ -121,6 +121,20 @@ const AdminDashboard = () => {
     navigate("/login");
   };
 
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setOrder("asc");
+    }
+  };
+
+  const getArrow = (field) => {
+    if (sortBy !== field) return "↕️";
+    return order === "asc" ? "⬆️" : "⬇️";
+  };
+
   const USER_SORT_OPTIONS = [
     { label: "Default", value: "createdAt" },
     { label: "Name", value: "username" },
@@ -135,11 +149,11 @@ const AdminDashboard = () => {
         <UserFilters
           search={search}
           setSearch={setSearch}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          order={order}
-          setOrder={setOrder}
-          sortOptions={USER_SORT_OPTIONS}
+          placeholder="Search user..."
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
         />
 
         {/* <div className="flex items-center gap-3 flex-wrap">
@@ -197,11 +211,36 @@ const AdminDashboard = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-200 text-gray-700">
             <tr>
-              <th className="p-3">User</th>
-              <th className="p-3">Email</th>
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("username")}
+              >
+                User {getArrow("username")}
+              </th>
+
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("email")}
+              >
+                Email {getArrow("email")}
+              </th>
+
               <th className="p-3">Roles</th>
-              <th className="p-3">Active</th>
-              <th className="p-3">Verified</th>
+
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("isActive")}
+              >
+                Active {getArrow("isActive")}
+              </th>
+
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("isVerified")}
+              >
+                Verified {getArrow("isVerified")}
+              </th>
+
               <th className="p-3 text-center">Actions</th>
             </tr>
           </thead>

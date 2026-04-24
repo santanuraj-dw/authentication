@@ -49,10 +49,18 @@ const RolesPage = () => {
 
   const fetchPermissions = async () => {
     try {
-      const res = await Api.get("/roles/permissions");
-      const grouped = groupPermissions(res.data.data);
-      setGroupedPermissions(grouped);
-      setPermissions(res.data.data);
+      const res = await Api.get("/permissions");
+
+      const data = res.data.data.data; 
+
+      setGroupedPermissions(
+        data.reduce((acc, module) => {
+          acc[module._id] = module.permissions;
+          return acc;
+        }, {}),
+      );
+
+      setPermissions(data);
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to fetch permissions",
@@ -101,36 +109,40 @@ const RolesPage = () => {
   };
 
   const isAllSelected = (module) => {
-    const modulePerms = groupedPermissions[module].map(
-      (action) => `${module}:${action}`,
-    );
+    const modulePerms = groupedPermissions[module].map((p) => p._id);
 
-    return modulePerms.every((p) => selectedPermissions.includes(p));
+    return modulePerms.every((id) => selectedPermissions.includes(id));
   };
 
   const toggleModule = (module) => {
-    const modulePerms = groupedPermissions[module].map(
-      (action) => `${module}:${action}`,
-    );
+    const modulePerms = groupedPermissions[module].map((p) => p._id);
 
-    const allSelected = modulePerms.every((p) =>
-      selectedPermissions.includes(p),
+    const allSelected = modulePerms.every((id) =>
+      selectedPermissions.includes(id),
     );
 
     if (allSelected) {
       setSelectedPermissions((prev) =>
-        prev.filter((p) => !modulePerms.includes(p)),
+        prev.filter((id) => !modulePerms.includes(id)),
       );
     } else {
       setSelectedPermissions((prev) => [...new Set([...prev, ...modulePerms])]);
     }
   };
 
-  const ROLE_SORT_OPTIONS = [
-    { label: "Default", value: "createdAt" },
-    { label: "Name", value: "name" },
-    { label: "Status", value: "isActive" },
-  ];
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setOrder("asc");
+    }
+  };
+
+  const getArrow = (field) => {
+    if (sortBy !== field) return "↕️";
+    return order === "asc" ? "⬆️" : "⬇️";
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -149,14 +161,6 @@ const RolesPage = () => {
         <UserFilters
           search={search}
           setSearch={setSearch}
-          sortBy={sortBy}
-          setSortBy={(value) => {
-            setSortBy(value);
-            setPage(1); // reset page on sort
-          }}
-          order={order}
-          setOrder={setOrder}
-          sortOptions={ROLE_SORT_OPTIONS}
           placeholder="Search role..."
           onSearchChange={(value) => {
             setSearch(value);
@@ -211,12 +215,25 @@ const RolesPage = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-200">
             <tr>
-              <th className="p-3">Role</th>
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("name")}
+              >
+                Role {getArrow("name")}
+              </th>
+
               <th className="p-3">Permissions</th>
-              <th className="p-3">Status</th>
-              {hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-              <th className="p-3 text-center">Actions</th>
-               )} 
+
+              <th
+                className="p-3 cursor-pointer"
+                onClick={() => handleSort("isActive")}
+              >
+                Status {getArrow("isActive")}
+              </th>
+
+              {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
+                <th className="p-3 text-center">Actions</th>
+              )}
             </tr>
           </thead>
 
@@ -229,10 +246,10 @@ const RolesPage = () => {
                   <div className="flex flex-wrap gap-1">
                     {r.permissions?.map((p, i) => (
                       <span
-                        key={i}
+                        key={i._id}
                         className="px-2 py-1 bg-gray-200 text-xs rounded"
                       >
-                        {p}
+                        {p.name}
                       </span>
                     ))}
                   </div>
@@ -250,44 +267,43 @@ const RolesPage = () => {
                   </span>
                 </td>
                 {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-                <>
-                  <td className="p-3 text-center flex gap-2 justify-center">
-                    <button
-                      onClick={() => toggleStatus(r._id, r.isActive)}
-                      className="px-3 py-1 text-xs bg-yellow-400 rounded"
-                    >
-                      {r.isActive ? "Deactivate" : "Activate"}
-                    </button>
+                  <>
+                    <td className="p-3 text-center flex gap-2 justify-center">
+                      <button
+                        onClick={() => toggleStatus(r._id, r.isActive)}
+                        className="px-3 py-1 text-xs bg-yellow-400 rounded"
+                      >
+                        {r.isActive ? "Deactivate" : "Activate"}
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setEditRole(r);
-                        setRoleName(r.name);
-                        // setSelectedPermissions(r.permissions || []);
-                        setSelectedPermissions(
-                          (r.permissions || []).map((p) =>
-                            typeof p === "string" ? p : p.name,
-                          ),
-                        );
-                        setShowModal(true);
-                      }}
-                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </>
+                      <button
+                        onClick={() => {
+                          setEditRole(r);
+                          setRoleName(r.name);
+                          // setSelectedPermissions(r.permissions || []);
+                          setSelectedPermissions(
+                            (r.permissions || []).map((p) =>
+                              typeof p === "string" ? p : p._id,
+                            ),
+                          );
+                          setShowModal(true);
+                        }}
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </>
                 )}
               </tr>
             ))}
           </tbody>
         </table>
 
-        <Pagination page={page} totalPages={totalPages} setPage={setPage} />
-
         {roles.length === 0 && (
           <div className="p-6 text-center text-gray-400">No roles found</div>
         )}
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} />
       </div>
 
       {showModal && (
@@ -315,27 +331,27 @@ const RolesPage = () => {
                   </label>
 
                   <div className="ml-5 mt-2 space-y-1">
-                    {groupedPermissions[module].map((action) => {
-                      const permValue = `${module}:${action}`;
+                    {groupedPermissions[module].map((perm) => {
+                      const action = perm.name.split(":")[1];
 
                       return (
                         <label
-                          key={permValue}
+                          key={perm._id}
                           className="flex items-center gap-2 text-sm capitalize"
                         >
                           <input
                             type="checkbox"
-                            checked={selectedPermissions.includes(permValue)}
+                            checked={selectedPermissions.includes(perm._id)}
                             onChange={(e) => {
                               if (e.target.checked) {
                                 setSelectedPermissions((prev) =>
-                                  prev.includes(permValue)
+                                  prev.includes(perm._id)
                                     ? prev
-                                    : [...prev, permValue],
+                                    : [...prev, perm._id],
                                 );
                               } else {
                                 setSelectedPermissions((prev) =>
-                                  prev.filter((p) => p !== permValue),
+                                  prev.filter((id) => id !== perm._id),
                                 );
                               }
                             }}

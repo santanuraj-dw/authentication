@@ -15,5 +15,6 @@ export const PERMISSIONS = {
   ROLE_UPDATE: "role:update",
   ROLE_DELETE: "role:delete",
 
-  PERMISSIONS_READ: "permissions:read"
+  PERMISSIONS_READ: "permissions:read",
+  PERMISSIONS_UPDATE:"permission:update"
 };

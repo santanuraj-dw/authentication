@@ -39,6 +39,14 @@ const AdminNavbar = () => {
         >
           Roles
         </NavLink>
+        <NavLink
+          to="/permissions"
+          className={({ isActive }) =>
+            `${linkClass} ${isActive ? activeClass : ""}`
+          }
+        >
+          Permissions
+        </NavLink>
       </div>
 
       <div>

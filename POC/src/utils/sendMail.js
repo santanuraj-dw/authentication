@@ -10,12 +10,11 @@ export const sendEmail = async (email, otp) => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    debug: true,
   });
 
   // console.log(transporter)
 
- await transporter.sendMail({
+ const res = await transporter.sendMail({
     from: `"Your App Name" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify Your Account",

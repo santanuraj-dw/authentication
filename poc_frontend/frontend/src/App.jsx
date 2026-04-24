@@ -21,6 +21,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import { PERMISSIONS } from "./constants/permissions";
 import AdminRoute from "./components/AdminRoute";
 import ProjectManagerDashboard from "./pages/project_manager/ProjectManagerDashboard";
+import Permissions from "./pages/admin/Permissions";
 
 function App() {
   return (
@@ -54,6 +55,14 @@ function App() {
                 element={
                   <PermissionRoute permissions={[PERMISSIONS.ROLE_READ]}>
                     <RolesPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/permissions"
+                element={
+                  <PermissionRoute permissions={[PERMISSIONS.PERMISSIONS_READ]}>
+                    <Permissions />
                   </PermissionRoute>
                 }
               />
