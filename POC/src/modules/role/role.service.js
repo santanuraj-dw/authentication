@@ -1,10 +1,11 @@
 import { PERMISSIONS } from "../../constants/permissions.js";
+import { Permission } from "../../models/Permission.model.js";
 import { Role } from "../../models/Role.model.js";
 import ApiError from "../../utils/ApiError.js";
 
-//create role
 export const createRoleService = async (data) => {
   let { name, permissions } = data;
+  // console.log("hello")
 
   name = name.trim().toLowerCase();
 
@@ -12,8 +13,8 @@ export const createRoleService = async (data) => {
     throw new ApiError(400, "Role name is required");
   }
 
-  if (permissions.includes(PERMISSIONS.ALL)) {
-    throw new ApiError(403, "Not allowed");
+  if (!Array.isArray(permissions) || permissions.length === 0) {
+    throw new ApiError(400, "Permissions are required");
   }
 
   const existing = await Role.findOne({ name });
@@ -21,12 +22,18 @@ export const createRoleService = async (data) => {
     throw new ApiError(400, "Role already exists");
   }
 
-  const validPermissions = Object.values(PERMISSIONS);
+  const validPermissions = await Permission.find({
+    _id: { $in: permissions },
+  }).select("_id");
 
-  const isValid = permissions.every((p) => validPermissions.includes(p));
-  if (!isValid) throw new ApiError(400, "Invalid permissions");
+  if (validPermissions.length !== permissions.length) {
+    throw new ApiError(400, "Some permissions are invalid");
+  }
 
-  return await Role.create({ name, permissions });
+  return await Role.create({
+    name,
+    permissions,
+  });
 };
 
 // update role
@@ -84,7 +91,6 @@ export const getRolesService = async (query) => {
     isActive,
   } = query;
 
-  // convert types
   page = parseInt(page);
   limit = parseInt(limit);
 
@@ -104,6 +110,7 @@ export const getRolesService = async (query) => {
   const sort = { [sortBy]: sortOrder };
 
   const roles = await Role.find(filter)
+    .populate("permissions", "name")
     .sort(sort)
     .skip((page - 1) * limit)
     .limit(limit);
@@ -117,4 +124,3 @@ export const getRolesService = async (query) => {
     totalPages: Math.ceil(total / limit),
   };
 };
-

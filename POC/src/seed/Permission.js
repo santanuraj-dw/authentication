@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import dotenv from "dotenv";
 import { Permission } from "../models/Permission.model.js";
+
 dotenv.config();
 
 const PERMISSIONS = {

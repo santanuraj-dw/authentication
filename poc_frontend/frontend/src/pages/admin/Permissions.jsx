@@ -134,7 +134,7 @@ const PermissionPage = () => {
               });
 
               const renderCell = (perm) => {
-                if (!perm) return <span className="text-gray-300">-</span>;
+                if (!perm) return <span className="text-gray-300 pr-6">-</span>;
 
                 return (
                   <div className="flex items-center gap-3 ">
@@ -152,7 +152,7 @@ const PermissionPage = () => {
                       {perm.isActive ? "Active" : "Inactive"}
                     </button>
 
-                    <button
+                    {/* <button
                       onClick={() => {
                         setEditPermission(perm);
                         setEditName(perm.name);
@@ -160,7 +160,7 @@ const PermissionPage = () => {
                       className="px-2 py-1 text-xs bg-blue-500 text-white rounded"
                     >
                       Edit
-                    </button>
+                    </button> */}
                   </div>
                 );
               };

@@ -18,7 +18,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
     "dev": "nodemon ",
-    "seed:permissions": "node src/seed/permissions.js"
+    "seed:permissions": "node src/seed/Permission.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

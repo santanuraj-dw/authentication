@@ -44,7 +44,11 @@ export const getAllPermissionsService = async (query) => {
 
   const skip = (page - 1) * limit;
 
-  const matchStage = search ? { group: { $regex: search, $options: "i" } } : {};
+  const matchStage = {
+    ...(search && { group: { $regex: search, $options: "i" } }),
+
+    name: { $ne: "select:all" },
+  };
 
   const sortField = sortBy === "name" ? "_id" : sortBy;
   const sortOrder = order === "asc" ? 1 : -1;
@@ -65,8 +69,13 @@ export const getAllPermissionsService = async (query) => {
       },
     },
 
-    { $sort: { [sortField]: sortOrder } },
+    {
+      $match: {
+        permissions: { $ne: [] },
+      },
+    },
 
+    { $sort: { [sortField]: sortOrder } },
     { $skip: skip },
     { $limit: Number(limit) },
   ]);
