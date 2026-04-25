@@ -24,8 +24,16 @@ const PermissionPage = () => {
       });
 
       const apiData = res.data.data;
+      const filteredPermissions = apiData.data
+        .map((group) => ({
+          ...group,
+          permissions: group.permissions.filter((p) => p.name !== "select:all"),
+        }))
+        .filter((group) => group.permissions.length > 0);
+      console.log(filteredPermissions);
 
-      setPermissions(apiData.data);
+      setPermissions(filteredPermissions);
+      // setPermissions(apiData.data);
       setTotalPages(apiData.pagination.pages);
 
       //   groupPermissions(apiData.data);

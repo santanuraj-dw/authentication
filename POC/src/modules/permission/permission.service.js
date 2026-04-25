@@ -2,6 +2,7 @@ import { Permission } from "../../models/Permission.model.js";
 import ApiError from "../../utils/ApiError.js";
 
 // get all permissions
+
 // export const getAllPermissionsService = async (query) => {
 //   const {
 //     page = 1,
@@ -40,6 +41,7 @@ export const getAllPermissionsService = async (query) => {
     limit = 10,
     sortBy = "name",
     order = "asc",
+    excludeSelectAll = "false",
   } = query;
 
   const skip = (page - 1) * limit;
@@ -47,7 +49,7 @@ export const getAllPermissionsService = async (query) => {
   const matchStage = {
     ...(search && { group: { $regex: search, $options: "i" } }),
 
-    name: { $ne: "select:all" },
+    // name: { $ne: "select:all" },
   };
 
   const sortField = sortBy === "name" ? "_id" : sortBy;
