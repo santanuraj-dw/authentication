@@ -68,18 +68,7 @@ function App() {
               />
             </Route>
           </Route>
-          {/* PROJECT MANAGER ROUTES */}
-          <Route element={<ProtectedRoute />}>
-            <Route
-              path="/pm-dashboard"
-              element={
-                <PermissionRoute permissions={[PERMISSIONS.PROJECT_READ]}>
-                  <ProjectManagerDashboard />
-                </PermissionRoute>
-              }
-            />
-          </Route>
-
+          
           {/* FALLBACK */}
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>

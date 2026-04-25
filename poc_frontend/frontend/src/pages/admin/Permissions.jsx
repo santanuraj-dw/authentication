@@ -30,7 +30,7 @@ const PermissionPage = () => {
           permissions: group.permissions.filter((p) => p.name !== "select:all"),
         }))
         .filter((group) => group.permissions.length > 0);
-      console.log(filteredPermissions);
+      // console.log(filteredPermissions);
 
       setPermissions(filteredPermissions);
       // setPermissions(apiData.data);
