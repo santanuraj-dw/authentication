@@ -20,7 +20,7 @@ const PermissionPage = () => {
   const fetchPermissions = async () => {
     try {
       const res = await api.get("/permissions", {
-        params: { search, sortBy, order, page, limit: 3 },
+        params: { search, sortBy, order, page, limit: 10 },
       });
 
       const apiData = res.data.data;

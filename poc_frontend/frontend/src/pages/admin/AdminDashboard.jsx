@@ -40,7 +40,7 @@ const AdminDashboard = () => {
       const res = await Api.get("/auth/users", {
         params: {
           page,
-          limit: 2,
+          limit: 10,
           search,
           sortBy,
           order,

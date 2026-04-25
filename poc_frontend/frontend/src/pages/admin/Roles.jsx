@@ -33,7 +33,7 @@ const RolesPage = () => {
       const res = await Api.get("/roles", {
         params: {
           page,
-          limit: 3,
+          limit: 10,
           search,
           sortBy,
           order,
