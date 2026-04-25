@@ -5,6 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import UserFilters from "../../components/otherComponents/UserFilters";
 import Pagination from "../../components/otherComponents/Pagination";
+import { hasPermission } from "../../utils/authorize";
+import { PERMISSIONS } from "../../constants/permissions";
 
 const AdminDashboard = () => {
   const [roles, setRoles] = useState([]);
@@ -20,7 +22,7 @@ const AdminDashboard = () => {
   const [sortBy, setSortBy] = useState("createdAt");
   const [order, setOrder] = useState("desc");
 
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
   // all role fetch
@@ -241,7 +243,10 @@ const AdminDashboard = () => {
                 Verified {getArrow("isVerified")}
               </th>
 
-              <th className="p-3 text-center">Actions</th>
+              {user &&
+                hasPermission(user, [PERMISSIONS.USER_UPDATE])&&(
+                  <th className="p-3 text-center">Actions</th>
+                )}
             </tr>
           </thead>
 
@@ -371,27 +376,29 @@ const AdminDashboard = () => {
                   </span>
                 </td>
 
-                <td className="p-3 text-center flex gap-2 justify-center">
-                  <button
-                    onClick={() => toggleStatus(u._id, u.isActive)}
-                    className="px-3 py-1 text-xs rounded bg-yellow-400"
-                  >
-                    {u.isActive ? "Deactivate" : "Activate"}
-                  </button>
+                {user && hasPermission(user, [PERMISSIONS.USER_UPDATE]) && (
+                  <td className="p-3 text-center flex gap-2 justify-center">
+                    <button
+                      onClick={() => toggleStatus(u._id, u.isActive)}
+                      className="px-3 py-1 text-xs rounded bg-yellow-400"
+                    >
+                      {u.isActive ? "Deactivate" : "Activate"}
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      setSelectedUser(u);
-                      setSelectedRoles({
-                        [u._id]: u.roles.map((r) => r._id),
-                      });
-                      setShowRoleModal(true);
-                    }}
-                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                  >
-                    Change Role
-                  </button>
-                </td>
+                    <button
+                      onClick={() => {
+                        setSelectedUser(u);
+                        setSelectedRoles({
+                          [u._id]: u.roles.map((r) => r._id),
+                        });
+                        setShowRoleModal(true);
+                      }}
+                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                    >
+                      Change Role
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

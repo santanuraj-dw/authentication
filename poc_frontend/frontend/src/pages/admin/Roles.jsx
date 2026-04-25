@@ -84,9 +84,10 @@ const RolesPage = () => {
   }, [page, search, sortBy, order]);
 
   useEffect(() => {
-    fetchPermissions();
-  }, []);
-
+    if (user && hasPermission(user, [PERMISSIONS.PERMISSIONS_READ])) {
+      fetchPermissions();
+    }
+  }, [user]);
   const saveRole = async () => {
     try {
       if (editRole) {
@@ -212,14 +213,14 @@ const RolesPage = () => {
             <option value="desc">Desc</option>
           </select>
         </div> */}
-        {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded"
-        >
-          + Create Role
-        </button>
-        {/* )} */}
+        {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-green-500 text-white rounded"
+          >
+            + Create Role
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
