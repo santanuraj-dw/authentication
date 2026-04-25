@@ -75,7 +75,7 @@ export const loginUserController = async (req, res) => {
   return res
     .cookie("accessToken", accessToken, {
       ...cookieOptions,
-      maxAge: 35 * 60 * 1000,
+      maxAge: 15 * 60 * 1000,
     })
     .cookie("refreshToken", refreshToken, {
       ...cookieOptions,

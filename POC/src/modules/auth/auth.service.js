@@ -171,7 +171,10 @@ export const refreshTokenService = async (userId, oldRefreshToken) => {
     throw new ApiError(401, "Invalid refresh token");
   }
 
-  const user = await User.findById(userId).populate("role", "name");
+  const user = await User.findById(userId).populate(
+    "roles",
+    "name permissions isActive",
+  );
   if (!user) {
     throw new ApiError(400, "User not found");
   }
