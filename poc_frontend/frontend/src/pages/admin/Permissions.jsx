@@ -186,6 +186,9 @@ const PermissionPage = () => {
             })}
           </tbody>
         </table>
+        {permissions.length === 0 && (
+          <div className="p-6 text-center text-gray-400">No roles found</div>
+        )}
 
         <div className="p-4 border-t">
           <div className="flex justify-center items-center gap-3">
