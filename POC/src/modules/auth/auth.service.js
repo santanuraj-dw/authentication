@@ -253,7 +253,7 @@ export const getAllUser = async ({
 }) => {
   const skip = (page - 1) * limit;
 
-  // ✅ get admin role
+
   const adminRole = await Role.findOne({ name: "admin" });
 
   const searchQuery = search
