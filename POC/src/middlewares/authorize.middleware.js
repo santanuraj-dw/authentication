@@ -12,28 +12,26 @@ const authorize = (requiredPermissions = []) => {
         : r
     );
 
-    // console.log("roles", roles)
-
     const activeRoles = roles.filter((r) => r.isActive);
-    // console.log("activeRoles", activeRoles)
 
     if (activeRoles.length === 0) {
       throw new ApiError(403, "All roles are inactive");
     }
 
-    const isAdmin = activeRoles.some((r) => r.name === "admin");
-    // console.log("isAdmin", isAdmin)
-    if (isAdmin) {
-      return next();
-    }
-
-    const userPermissions = activeRoles.flatMap(
-      (r) => r.permissions || []
+    const userPermissions = activeRoles.flatMap((r) =>
+      (r.permissions || [])
+        .filter((p) => {
+          if (typeof p === "string") return true; 
+          return p?.isActive;
+        })
+        .map((p) => (typeof p === "string" ? p : p.name))
     );
-    
-    // console.log("userPermissions", userPermissions)
 
     const uniquePermissions = [...new Set(userPermissions)];
+
+    if (uniquePermissions.includes("select:all")) {
+      return next();
+    }
 
     if (requiredPermissions.length === 0) {
       return next();

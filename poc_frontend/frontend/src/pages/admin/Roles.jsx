@@ -33,13 +33,13 @@ const RolesPage = () => {
       const res = await Api.get("/roles", {
         params: {
           page,
-          limit: 3,
+          limit: 10,
           search,
           sortBy,
           order,
         },
       });
-      console.log(res.data.data.roles);
+      // console.log(res.data.data.roles);
       setRoles(res.data.data.roles);
       setTotalPages(res.data.data.totalPages);
     } catch (error) {
@@ -51,16 +51,27 @@ const RolesPage = () => {
     try {
       const res = await Api.get("/permissions");
 
-      const data = res.data.data.data; 
+      const data = res.data.data.data;
+      // console.log(data)
+      const excludedPermissions = ["permissions:read"];
+
+      const filteredData = data
+        .map((module) => ({
+          ...module,
+          permissions: module.permissions.filter(
+            (p) => !excludedPermissions.includes(p.name),
+          ),
+        }))
+        .filter((module) => module.permissions.length > 0);
 
       setGroupedPermissions(
-        data.reduce((acc, module) => {
+        filteredData.reduce((acc, module) => {
           acc[module._id] = module.permissions;
           return acc;
         }, {}),
       );
 
-      setPermissions(data);
+      setPermissions(filteredData);
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to fetch permissions",
@@ -73,20 +84,21 @@ const RolesPage = () => {
   }, [page, search, sortBy, order]);
 
   useEffect(() => {
-    fetchPermissions();
-  }, []);
-
+    if (user && hasPermission(user, [PERMISSIONS.PERMISSIONS_READ])) {
+      fetchPermissions();
+    }
+  }, [user]);
   const saveRole = async () => {
     try {
       if (editRole) {
-        console.log("edit role");
+        // console.log("edit role");
         await Api.patch(`/roles/${editRole._id}`, {
           name: roleName,
           permissions: selectedPermissions,
         });
         toast.success("Role updated");
       } else {
-        console.log("create role");
+        // console.log("create role");
         await Api.post("/roles", {
           name: roleName,
           permissions: selectedPermissions,
@@ -201,14 +213,14 @@ const RolesPage = () => {
             <option value="desc">Desc</option>
           </select>
         </div> */}
-        {/* {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && ( */}
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded"
-        >
-          + Create Role
-        </button>
-        {/* )} */}
+        {user && hasPermission(user, [PERMISSIONS.ROLE_CREATE]) && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-green-500 text-white rounded"
+          >
+            + Create Role
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -244,9 +256,9 @@ const RolesPage = () => {
 
                 <td className="p-3">
                   <div className="flex flex-wrap gap-1">
-                    {r.permissions?.map((p, i) => (
+                    {r.permissions?.map((p) => (
                       <span
-                        key={i._id}
+                        key={p._id}
                         className="px-2 py-1 bg-gray-200 text-xs rounded"
                       >
                         {p.name}

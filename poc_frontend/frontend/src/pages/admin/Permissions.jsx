@@ -20,12 +20,20 @@ const PermissionPage = () => {
   const fetchPermissions = async () => {
     try {
       const res = await api.get("/permissions", {
-        params: { search, sortBy, order, page, limit: 3 },
+        params: { search, sortBy, order, page, limit: 10 },
       });
 
       const apiData = res.data.data;
+      const filteredPermissions = apiData.data
+        .map((group) => ({
+          ...group,
+          permissions: group.permissions.filter((p) => p.name !== "select:all"),
+        }))
+        .filter((group) => group.permissions.length > 0);
+      // console.log(filteredPermissions);
 
-      setPermissions(apiData.data);
+      setPermissions(filteredPermissions);
+      // setPermissions(apiData.data);
       setTotalPages(apiData.pagination.pages);
 
       //   groupPermissions(apiData.data);
@@ -178,6 +186,9 @@ const PermissionPage = () => {
             })}
           </tbody>
         </table>
+        {permissions.length === 0 && (
+          <div className="p-6 text-center text-gray-400">No roles found</div>
+        )}
 
         <div className="p-4 border-t">
           <div className="flex justify-center items-center gap-3">

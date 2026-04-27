@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Api from "../services/api";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { getDefaultRoute } from "../utils/routerCheck";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -28,12 +29,12 @@ const Login = () => {
 
       toast.success("Login successful");
 
-      if (userData.roles[0].name === "Admin") {
-        // console.log("hello")
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+      // if (userData.roles[0].name === "Admin") {
+      //   // console.log("hello")
+      //   navigate("/users");
+      // } 
+      // const route = getDefaultRoute(user);
+      // navigate(route);
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
       setErrorMsg(message);
@@ -47,18 +48,14 @@ const Login = () => {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-sm">
           <h2 className="text-2xl font-semibold text-gray-800 mb-1">Login</h2>
-          <p className="text-sm text-gray-400 mb-6">
-            Sign in to your account
-          </p>
+          <p className="text-sm text-gray-400 mb-6">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
               type="email"
               placeholder="Email"
               value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
               autoComplete="email"
               disabled={loading}
@@ -69,9 +66,7 @@ const Login = () => {
               type="password"
               placeholder="Password"
               value={form.password}
-              onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
               autoComplete="current-password"
               disabled={loading}
@@ -90,10 +85,11 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-2 rounded text-white font-medium transition ${loading
+              className={`w-full py-2 rounded text-white font-medium transition ${
+                loading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
-                }`}
+              }`}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -123,7 +119,11 @@ const Login = () => {
               {errorMsg === "Please verify your email first" && (
                 <div className="mt-2">
                   <span
-                    onClick={() => navigate("/verify-email", { state: { email: form.email } })}
+                    onClick={() =>
+                      navigate("/verify-email", {
+                        state: { email: form.email },
+                      })
+                    }
                     className="text-blue-600 cursor-pointer hover:underline block"
                   >
                     Click here to verify your email
@@ -132,7 +132,6 @@ const Login = () => {
               )}
             </div>
           )}
-
         </div>
       </div>
     </div>

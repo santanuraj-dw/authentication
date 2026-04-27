@@ -85,10 +85,15 @@ export const resendOtp = async (data) => {
 //login
 export const loginUserService = async (data) => {
   const { email, password } = data;
-  const user = await User.findOne({ email }).populate(
-    "roles",
-    "name permissions isActive",
-  );
+  const user = await User.findOne({ email }).populate({
+    path: "roles",
+    select: "name permissions isActive",
+    populate: {
+      path: "permissions",
+      select: "name isActive",
+    },
+  });
+
   if (!user) {
     throw new ApiError(400, "Invalid user");
   }
@@ -171,7 +176,15 @@ export const refreshTokenService = async (userId, oldRefreshToken) => {
     throw new ApiError(401, "Invalid refresh token");
   }
 
-  const user = await User.findById(userId).populate("role", "name");
+  const user = await User.findById(userId).populate({
+    path: "roles",
+    select: "name permissions isActive",
+    populate: {
+      path: "permissions",
+      select: "name isActive",
+    },
+  });
+  
   if (!user) {
     throw new ApiError(400, "User not found");
   }
@@ -284,8 +297,14 @@ export const getAllUser = async ({
 export const getMe = async ({ id }) => {
   const user = await User.findById(id)
     .select("-password")
-    .populate("roles", "name permissions isActive");
-
+    .populate({
+      path: "roles",
+      select: "name permissions isActive",
+      populate: {
+        path: "permissions",
+        select: "name isActive",
+      },
+    });
   if (!user) {
     throw new ApiError(404, "User not found");
   }

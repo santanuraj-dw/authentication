@@ -14,12 +14,12 @@ import RolesPage from "./pages/admin/Roles";
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PermissionRoute from "./components/PermissionRoute";
-import RoleRoute from "./components/AdminRoute";
+import RoleRoute from "./components/RoleRoute";
 
 import AdminLayout from "./layouts/AdminLayout";
 
 import { PERMISSIONS } from "./constants/permissions";
-import AdminRoute from "./components/AdminRoute";
+// import AdminRoute from "./components/RoleRoute";
 import ProjectManagerDashboard from "./pages/project_manager/ProjectManagerDashboard";
 import Permissions from "./pages/admin/Permissions";
 
@@ -28,7 +28,6 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ================= PUBLIC ROUTES ================= */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -39,17 +38,23 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/*  PROTECTED ROUTES */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
+          <Route element={<RoleRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/" element={<Dashboard />} />
+            </Route>
           </Route>
 
-          {/* ADMIN ROUTES */}
-          <Route element={<AdminRoute />}>
+          <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route
+                path="/users"
+                element={
+                  <PermissionRoute permissions={[PERMISSIONS.USER_READ]}>
+                    <AdminDashboard />
+                  </PermissionRoute>
+                }
+              />
 
-              {/* Permission-based route */}
               <Route
                 path="/roles"
                 element={
@@ -58,6 +63,7 @@ function App() {
                   </PermissionRoute>
                 }
               />
+
               <Route
                 path="/permissions"
                 element={
@@ -68,19 +74,7 @@ function App() {
               />
             </Route>
           </Route>
-          {/* PROJECT MANAGER ROUTES */}
-          <Route element={<ProtectedRoute />}>
-            <Route
-              path="/pm-dashboard"
-              element={
-                <PermissionRoute permissions={[PERMISSIONS.PROJECT_READ]}>
-                  <ProjectManagerDashboard />
-                </PermissionRoute>
-              }
-            />
-          </Route>
 
-          {/* FALLBACK */}
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
       </BrowserRouter>
