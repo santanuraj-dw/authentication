@@ -24,7 +24,7 @@ const Dashboard = () => {
   //     state: { email: user.email },
   //   });
   // };
-
+  const [sendingOtp, setSendingOtp] = useState(false);
   const [modalType, setModalType] = useState(null); // "username" | "email"
 
   const [otpSent, setOtpSent] = useState(false);
@@ -77,7 +77,6 @@ const Dashboard = () => {
     }
   };
 
-
   const handleUsernameUpdate = async (e) => {
     e.preventDefault();
 
@@ -94,9 +93,14 @@ const Dashboard = () => {
     }
   };
 
-
   const handleSendOtp = async () => {
+    if (!profileForm.email) {
+      return toast.error("Email is required");
+    }
+
     try {
+      setSendingOtp(true);
+
       await Api.post("/user/send-email-otp", {
         email: profileForm.email,
       });
@@ -105,6 +109,8 @@ const Dashboard = () => {
       setOtpSent(true);
     } catch (err) {
       toast.error(err.response?.data?.message);
+    } finally {
+      setSendingOtp(false);
     }
   };
 
@@ -112,12 +118,15 @@ const Dashboard = () => {
     e.preventDefault();
 
     try {
+      console.log(profileForm.email);
       const res = await Api.patch("/user/verify-change-email", {
         email: profileForm.email,
         otp: profileForm.otp,
       });
+      
+      const me = await Api.get("/auth/me");
 
-      setUser(res.data.user);
+      setUser(me.data.data);
       toast.success("Email updated successfully");
       setModalType(null);
       setOtpSent(false);
@@ -292,9 +301,14 @@ const Dashboard = () => {
                   <button
                     type="button"
                     onClick={handleSendOtp}
-                    className="bg-yellow-500 text-white py-2 rounded"
+                    disabled={sendingOtp}
+                    className={`py-2 rounded text-white ${
+                      sendingOtp
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-yellow-500"
+                    }`}
                   >
-                    Send OTP
+                    {sendingOtp ? "Sending..." : "Send OTP"}
                   </button>
                 ) : (
                   <>
