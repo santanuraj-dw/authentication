@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import { PERMISSIONS } from "../../constants/permissions";
+import { hasPermission } from "../../utils/authorize";
 
 const PermissionPage = () => {
   const [permissions, setPermissions] = useState([]);
@@ -16,6 +19,8 @@ const PermissionPage = () => {
 
   const [editPermission, setEditPermission] = useState(null);
   const [editName, setEditName] = useState("");
+
+  const { user } = useAuth();
 
   const fetchPermissions = async () => {
     try {
@@ -123,10 +128,15 @@ const PermissionPage = () => {
               >
                 Resource {getArrow("name")}
               </th>
-              <th className="p-3 text-left">Read</th>
-              <th className="p-3 text-left">Create</th>
-              <th className="p-3 text-left">Update</th>
-              <th className="p-3 text-left">Delete</th>
+              {user &&
+                hasPermission(user, [PERMISSIONS.PERMISSIONS_UPDATE]) && (
+                  <>
+                    <th className="p-3 text-left">Read</th>
+                    <th className="p-3 text-left">Create</th>
+                    <th className="p-3 text-left">Update</th>
+                    <th className="p-3 text-left">Delete</th>
+                  </>
+                )}
             </tr>
           </thead>
 
@@ -176,18 +186,24 @@ const PermissionPage = () => {
               return (
                 <tr key={resource} className="border-t text-center">
                   <td className="p-3 font-semibold capitalize">{resource}</td>
-
-                  <td>{renderCell(permsObj.read)}</td>
-                  <td>{renderCell(permsObj.create)}</td>
-                  <td>{renderCell(permsObj.update)}</td>
-                  <td>{renderCell(permsObj.delete)}</td>
+                  {user &&
+                    hasPermission(user, [PERMISSIONS.PERMISSIONS_UPDATE]) && (
+                      <>
+                        <td>{renderCell(permsObj.read)}</td>
+                        <td>{renderCell(permsObj.create)}</td>
+                        <td>{renderCell(permsObj.update)}</td>
+                        <td>{renderCell(permsObj.delete)}</td>
+                      </>
+                    )}
                 </tr>
               );
             })}
           </tbody>
         </table>
         {permissions.length === 0 && (
-          <div className="p-6 text-center text-gray-400">No roles found</div>
+          <div className="p-6 text-center text-gray-400">
+            No Permissions found
+          </div>
         )}
 
         <div className="p-4 border-t">

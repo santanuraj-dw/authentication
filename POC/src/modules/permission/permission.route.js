@@ -14,7 +14,7 @@ const router = Router();
 router.get(
   "/",
   verifyJWT,
-  authorize([PERMISSIONS.PERMISSIONS_READ]),
+  // authorize([PERMISSIONS.PERMISSIONS_READ]),
   asyncHandler(getAllPermissions),
 );
 router.patch(

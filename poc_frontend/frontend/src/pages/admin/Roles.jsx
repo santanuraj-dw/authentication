@@ -48,35 +48,35 @@ const RolesPage = () => {
   };
 
   const fetchPermissions = async () => {
-    try {
-      const res = await Api.get("/permissions");
+      try {
+        const res = await Api.get("/permissions");
 
-      const data = res.data.data.data;
-      // console.log(data)
-      const excludedPermissions = ["permissions:read"];
+        const data = res.data.data.data;
+        // console.log(data)
+        const excludedPermissions = ["permissions:read"];
 
-      const filteredData = data
-        .map((module) => ({
-          ...module,
-          permissions: module.permissions.filter(
-            (p) => !excludedPermissions.includes(p.name),
-          ),
-        }))
-        .filter((module) => module.permissions.length > 0);
+        const filteredData = data
+          .map((module) => ({
+            ...module,
+            permissions: module.permissions.filter(
+              (p) => !excludedPermissions.includes(p.name),
+            ),
+          }))
+          .filter((module) => module.permissions.length > 0);
 
-      setGroupedPermissions(
-        filteredData.reduce((acc, module) => {
-          acc[module._id] = module.permissions;
-          return acc;
-        }, {}),
-      );
+        setGroupedPermissions(
+          filteredData.reduce((acc, module) => {
+            acc[module._id] = module.permissions;
+            return acc;
+          }, {}),
+        );
 
-      setPermissions(filteredData);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to fetch permissions",
-      );
-    }
+        setPermissions(filteredData);
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message || "Failed to fetch permissions",
+        );
+      }
   };
 
   useEffect(() => {
@@ -84,9 +84,7 @@ const RolesPage = () => {
   }, [page, search, sortBy, order]);
 
   useEffect(() => {
-    if (user && hasPermission(user, [PERMISSIONS.PERMISSIONS_READ])) {
-      fetchPermissions();
-    }
+    fetchPermissions();
   }, [user]);
   const saveRole = async () => {
     try {
@@ -339,60 +337,78 @@ const RolesPage = () => {
               placeholder="Role name"
             />
 
-            <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
-              {Object.keys(groupedPermissions).map((module) => (
-                <div key={module} className="border-b pb-2">
-                  <label className="flex items-center gap-2 font-semibold capitalize">
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected(module)}
-                      onChange={() => toggleModule(module)}
-                    />
-                    {module}
-                  </label>
+            {permissions  && (
+              <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
+                {Object.keys(groupedPermissions).map((module) => (
+                  <div key={module} className="border-b pb-2">
+                    <label className="flex items-center gap-2 font-semibold capitalize">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected(module)}
+                        onChange={() => toggleModule(module)}
+                      />
+                      {module}
+                    </label>
 
-                  <div className="ml-5 mt-2 space-y-1">
-                    {groupedPermissions[module].map((perm) => {
-                      const action = perm.name.split(":")[1];
+                    <div className="ml-5 mt-2 space-y-1">
+                      {groupedPermissions[module].map((perm) => {
+                        const action = perm.name.split(":")[1];
 
-                      return (
-                        <label
-                          key={perm._id}
-                          className="flex items-center gap-2 text-sm capitalize"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedPermissions.includes(perm._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedPermissions((prev) =>
-                                  prev.includes(perm._id)
-                                    ? prev
-                                    : [...prev, perm._id],
-                                );
-                              } else {
-                                setSelectedPermissions((prev) =>
-                                  prev.filter((id) => id !== perm._id),
-                                );
-                              }
-                            }}
-                          />
-                          {action}
-                        </label>
-                      );
-                    })}
+                        return (
+                          <label
+                            key={perm._id}
+                            className="flex items-center gap-2 text-sm capitalize"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedPermissions.includes(perm._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedPermissions((prev) =>
+                                    prev.includes(perm._id)
+                                      ? prev
+                                      : [...prev, perm._id],
+                                  );
+                                } else {
+                                  setSelectedPermissions((prev) =>
+                                    prev.filter((id) => id !== perm._id),
+                                  );
+                                }
+                              }}
+                            />
+                            {action}
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
+                ))}
+              </div>
+            )}
+            {!permissions && (
+              <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
+                <div className="p-6 text-center text-gray-400">
+                  No Permissions found
                 </div>
-              ))}
-            </div>
-
+              </div>
+            )}
             <div className="flex gap-2 mt-3">
-              <button
-                onClick={saveRole}
-                className="bg-blue-500 text-white px-3 py-1"
-              >
-                Save
-              </button>
+              {permissions && (
+                <button
+                  onClick={saveRole}
+                  className="bg-blue-500 text-white px-3 py-1"
+                >
+                  Save
+                </button>
+              )}
+              {!permissions && (
+                <button
+                  disabled
+                  className="bg-blue-200 text-white px-3 py-1"
+                >
+                  Save
+                </button>
+              )}
 
               <button
                 onClick={() => {

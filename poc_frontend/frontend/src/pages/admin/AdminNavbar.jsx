@@ -25,7 +25,7 @@ const AdminNavbar = () => {
 
   return (
     <>
-      {hasAnyPermission(user) && (
+      {(hasAnyPermission(user) || user )&& (
         <div className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
           <h1 className="text-xl font-bold text-blue-600">Dashboard</h1>
 

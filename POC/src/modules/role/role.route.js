@@ -36,7 +36,7 @@ router.get(
   verifyJWT,
   // authorizeRoles("admin"),
   // authorizePermissions(PERMISSIONS.ROLE_READ),
-  authorize([PERMISSIONS.ROLE_READ]),
+  // authorize([PERMISSIONS.ROLE_READ]),
   asyncHandler(getRolesController),
 );
 
