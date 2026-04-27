@@ -66,3 +66,26 @@ export const verifyChangeEmail = async (userId, newEmail, otp) => {
 
   return user;
 };
+
+
+export const changeUsername = async (userId, newUsername) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (user.username === newUsername) {
+    throw new ApiError(400, "New username must be different");
+  }
+
+  const existing = await User.findOne({ username: newUsername });
+  if (existing) {
+    throw new ApiError(400, "Username already taken");
+  }
+
+  user.username = newUsername;
+  await user.save();
+
+  return user;
+};

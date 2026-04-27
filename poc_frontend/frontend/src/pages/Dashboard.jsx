@@ -24,6 +24,7 @@ const Dashboard = () => {
   //     state: { email: user.email },
   //   });
   // };
+  const [timer, setTimer] = useState(0);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [modalType, setModalType] = useState(null); // "username" | "email"
 
@@ -71,7 +72,8 @@ const Dashboard = () => {
         confirmPassword: "",
       });
 
-      setShowPasswordBox(false);
+      // ✅ CLOSE POPUP
+      setModalType(null);
     } catch (err) {
       toast.error(err.response?.data?.message);
     }
@@ -85,7 +87,8 @@ const Dashboard = () => {
         username: profileForm.username,
       });
 
-      setUser(res.data.user);
+      const me = await Api.get("/auth/me");
+      setUser(me.data.data);
       toast.success("Username updated");
       setModalType(null);
     } catch (err) {
@@ -107,6 +110,8 @@ const Dashboard = () => {
 
       toast.success("OTP sent to email");
       setOtpSent(true);
+
+      startTimer();
     } catch (err) {
       toast.error(err.response?.data?.message);
     } finally {
@@ -123,7 +128,7 @@ const Dashboard = () => {
         email: profileForm.email,
         otp: profileForm.otp,
       });
-      
+
       const me = await Api.get("/auth/me");
 
       setUser(me.data.data);
@@ -133,6 +138,20 @@ const Dashboard = () => {
     } catch (err) {
       toast.error(err.response?.data?.message);
     }
+  };
+
+  const startTimer = () => {
+    setTimer(60);
+
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   return (
@@ -295,6 +314,7 @@ const Dashboard = () => {
                   placeholder="New Email"
                   onChange={handleProfileChange}
                   className="border p-2 rounded"
+                  disabled={otpSent}
                 />
 
                 {!otpSent ? (
@@ -326,6 +346,24 @@ const Dashboard = () => {
                       className="bg-green-500 text-white py-2 rounded"
                     >
                       Verify & Update
+                    </button>
+
+                    {/* ✅ RESEND BUTTON */}
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={timer > 0 || sendingOtp}
+                      className={`text-sm ${
+                        timer > 0
+                          ? "text-gray-400"
+                          : "text-blue-600 hover:underline"
+                      }`}
+                    >
+                      {timer > 0
+                        ? `Resend OTP in ${timer}s`
+                        : sendingOtp
+                          ? "Sending..."
+                          : "Resend OTP"}
                     </button>
                   </>
                 )}

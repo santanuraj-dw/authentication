@@ -2,11 +2,13 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import {
   changePassword,
+  changeUsername,
   sendEmailOtp,
   verifyChangeEmail,
 } from "./user.service.js";
 import {
   changePasswordSchema,
+  changeUsernameSchema,
   sendEmailOtpSchema,
   verifyChangeEmailSchema,
 } from "./user.validation.js";
@@ -63,4 +65,22 @@ export const verifyChangeEmailController = async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, "Email updated successfully", user));
+};
+
+//change username
+export const changeUsernameController = async (req, res) => {
+  const { error } = changeUsernameSchema.validate(req.body);
+
+  if (error) {
+    throw new ApiError(400, error.details[0].message);
+  }
+
+  const userId = req.user.id;
+  const { username } = req.body;
+
+  const user = await changeUsername(userId, username);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Username updated successfully", user));
 };

@@ -29,3 +29,11 @@ export const verifyChangeEmailSchema = Joi.object({
     "string.length": "OTP must be 6 digits",
   }),
 });
+
+export const changeUsernameSchema = Joi.object({
+  username: Joi.string().min(3).max(20).trim().required().messages({
+    "string.empty": "Username is required",
+    "string.min": "Username must be at least 3 characters",
+    "string.max": "Username must be less than 20 characters",
+  }),
+});
