@@ -270,14 +270,15 @@ export const getAllUser = async ({
     ...searchQuery,
   };
 
-  const sortOptions = {
-    name: "username",
-    status: "isActive",
-    verified: "isVerified",
-    createdAt: "createdAt",
-  };
+  // const sortOptions = {
+  //   name: "username",
+  //   status: "isActive",
+  //   verified: "isVerified",
+  //   createdAt: "createdAt",
+  // };
 
-  const sortField = sortOptions[sortBy] || "createdAt";
+  // const sortField = sortOptions[sortBy] || "createdAt";
+  const sortField = sortBy || "createdAt";
   const sortOrder = order === "asc" ? 1 : -1;
 
   const users = await User.find(query)
