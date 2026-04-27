@@ -243,10 +243,10 @@ const AdminDashboard = () => {
                 Verified {getArrow("isVerified")}
               </th>
 
-              {user &&
-                hasPermission(user, [PERMISSIONS.USER_UPDATE])&&(
-                  <th className="p-3 text-center">Actions</th>
-                )}
+              {((user && hasPermission(user, [PERMISSIONS.USER_DELETE])) ||
+                hasPermission(user, [PERMISSIONS.USER_UPDATE])) && (
+                <th className="p-3 text-center">Actions</th>
+              )}
             </tr>
           </thead>
 
@@ -375,28 +375,31 @@ const AdminDashboard = () => {
                     {u.isVerified ? "Verified" : "Not Verified"}
                   </span>
                 </td>
-
-                {user && hasPermission(user, [PERMISSIONS.USER_UPDATE]) && (
+                {((user && hasPermission(user, [PERMISSIONS.USER_DELETE])) ||
+                  hasPermission(user, [PERMISSIONS.USER_UPDATE])) && (
                   <td className="p-3 text-center flex gap-2 justify-center">
-                    <button
-                      onClick={() => toggleStatus(u._id, u.isActive)}
-                      className="px-3 py-1 text-xs rounded bg-yellow-400"
-                    >
-                      {u.isActive ? "Deactivate" : "Activate"}
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedUser(u);
-                        setSelectedRoles({
-                          [u._id]: u.roles.map((r) => r._id),
-                        });
-                        setShowRoleModal(true);
-                      }}
-                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                    >
-                      Change Role
-                    </button>
+                    {user && hasPermission(user, [PERMISSIONS.USER_DELETE]) && (
+                      <button
+                        onClick={() => toggleStatus(u._id, u.isActive)}
+                        className="px-3 py-1 text-xs rounded bg-yellow-400"
+                      >
+                        {u.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    )}
+                    {user && hasPermission(user, [PERMISSIONS.USER_UPDATE]) && (
+                      <button
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setSelectedRoles({
+                            [u._id]: u.roles.map((r) => r._id),
+                          });
+                          setShowRoleModal(true);
+                        }}
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                      >
+                        Change Role
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>

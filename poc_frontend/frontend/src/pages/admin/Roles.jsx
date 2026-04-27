@@ -243,9 +243,11 @@ const RolesPage = () => {
                 Status {getArrow("isActive")}
               </th>
 
-              {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-                <th className="p-3 text-center">Actions</th>
-              )}
+              {user &&
+                (hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) ||
+                  hasPermission(user, [PERMISSIONS.ROLE_DELETE])) && (
+                  <th className="p-3 text-center">Actions</th>
+                )}
             </tr>
           </thead>
 
@@ -278,35 +280,42 @@ const RolesPage = () => {
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
-                {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-                  <>
-                    <td className="p-3 text-center flex gap-2 justify-center">
-                      <button
-                        onClick={() => toggleStatus(r._id, r.isActive)}
-                        className="px-3 py-1 text-xs bg-yellow-400 rounded"
-                      >
-                        {r.isActive ? "Deactivate" : "Activate"}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setEditRole(r);
-                          setRoleName(r.name);
-                          // setSelectedPermissions(r.permissions || []);
-                          setSelectedPermissions(
-                            (r.permissions || []).map((p) =>
-                              typeof p === "string" ? p : p._id,
-                            ),
-                          );
-                          setShowModal(true);
-                        }}
-                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </>
-                )}
+                {user &&
+                  (hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) ||
+                    hasPermission(user, [PERMISSIONS.ROLE_DELETE])) && (
+                    <>
+                      <td className="p-3 text-center flex gap-2 justify-center">
+                        {user &&
+                          hasPermission(user, [PERMISSIONS.ROLE_DELETE]) && (
+                            <button
+                              onClick={() => toggleStatus(r._id, r.isActive)}
+                              className="px-3 py-1 text-xs bg-yellow-400 rounded"
+                            >
+                              {r.isActive ? "Deactivate" : "Activate"}
+                            </button>
+                          )}
+                        {user &&
+                          hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
+                            <button
+                              onClick={() => {
+                                setEditRole(r);
+                                setRoleName(r.name);
+                                // setSelectedPermissions(r.permissions || []);
+                                setSelectedPermissions(
+                                  (r.permissions || []).map((p) =>
+                                    typeof p === "string" ? p : p._id,
+                                  ),
+                                );
+                                setShowModal(true);
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                            >
+                              Edit
+                            </button>
+                          )}
+                      </td>
+                    </>
+                  )}
               </tr>
             ))}
           </tbody>

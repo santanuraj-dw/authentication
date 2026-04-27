@@ -52,7 +52,7 @@ router.patch(
   "/status/:roleId",
   verifyJWT,
   // authorizeRoles("admin"),
-  authorize([PERMISSIONS.ROLE_UPDATE]),
+  authorize([PERMISSIONS.ROLE_DELETE]),
   asyncHandler(changeStatusController),
 );
 

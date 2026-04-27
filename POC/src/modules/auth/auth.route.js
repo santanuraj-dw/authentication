@@ -41,7 +41,7 @@ router.patch(
   verifyJWT,
   // authorizeRoles("admin"),
   // authorizePermissions(PERMISSIONS.USER_UPDATE),
-  authorize([PERMISSIONS.USER_UPDATE]),
+  authorize([PERMISSIONS.USER_DELETE]),
   asyncHandler(changeStatusController),
 );
 router.patch(
