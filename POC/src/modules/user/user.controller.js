@@ -22,9 +22,9 @@ export const changePasswordController = async (req, res) => {
   }
 
   const userId = req.user.id;
-  const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword, confirmPassword } = req.body;
 
-  await changePassword(userId, oldPassword, newPassword);
+  await changePassword(userId, oldPassword, newPassword, confirmPassword);
 
   return res
     .status(200)

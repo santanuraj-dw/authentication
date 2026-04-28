@@ -3,7 +3,11 @@ import ApiError from "../../utils/ApiError.js";
 import redis from "../../config/redis.js";
 import { sendEmail } from "../../utils/sendMail.js";
 
-export const changePassword = async (userId, oldPassword, newPassword) => {
+export const changePassword = async (userId, oldPassword, newPassword, confirmPassword) => {
+  if(newPassword !== confirmPassword){
+    throw new ApiError(400, "Password and ConfirmPassword do not match")
+  }
+
   const user = await User.findById(userId);
 
   if (!user) {

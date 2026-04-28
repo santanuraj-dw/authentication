@@ -24,6 +24,7 @@ const Dashboard = () => {
   //     state: { email: user.email },
   //   });
   // };
+  const [errors, setErrors] = useState({});
   const [timer, setTimer] = useState(0);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [modalType, setModalType] = useState(null); // "username" | "email"
@@ -45,60 +46,80 @@ const Dashboard = () => {
 
   const handleProfileChange = (e) => {
     setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
   };
 
   const handlePasswordChangeInput = (e) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
   };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
 
+    let newErrors = {};
+
+    if (!passwordForm.oldPassword) {
+      newErrors.oldPassword = "Old password is required";
+    }
+
+    if (!passwordForm.newPassword) {
+      newErrors.newPassword = "New password is required";
+    }
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      return toast.error("Passwords do not match");
+      newErrors.confirmPassword = "Password and ConfirmPassword do not match";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      return setErrors(newErrors);
     }
 
     try {
       const res = await Api.patch("/user/change-password", {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword,
       });
 
       toast.success(res.data.message);
-
-      setPasswordForm({
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-
-      // ✅ CLOSE POPUP
+      setErrors({});
       setModalType(null);
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      setErrors({
+        api: err.response?.data?.message || "Something went wrong",
+      });
     }
   };
 
   const handleUsernameUpdate = async (e) => {
     e.preventDefault();
 
+    if (!profileForm.username) {
+      return setErrors({ username: "Username is required" });
+    }
+
     try {
-      const res = await Api.patch("/user/change-username", {
+      await Api.patch("/user/change-username", {
         username: profileForm.username,
       });
 
       const me = await Api.get("/auth/me");
       setUser(me.data.data);
+
       toast.success("Username updated");
+      setErrors({});
       setModalType(null);
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      setErrors({
+        api: err.response?.data?.message,
+      });
     }
   };
 
   const handleSendOtp = async () => {
     if (!profileForm.email) {
-      return toast.error("Email is required");
+      return setErrors({ email: "Email is required" });
     }
 
     try {
@@ -109,34 +130,40 @@ const Dashboard = () => {
       });
 
       toast.success("OTP sent to email");
+      setErrors({});
       setOtpSent(true);
-
       startTimer();
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      setErrors({
+        api: err.response?.data?.message,
+      });
     } finally {
       setSendingOtp(false);
     }
   };
 
-  const handleVerifyEmail = async (e) => {
-    e.preventDefault();
+  const handleVerifyEmail = async () => {
+    if (!profileForm.otp) {
+      return setErrors({ otp: "OTP is required" });
+    }
 
     try {
-      console.log(profileForm.email);
       const res = await Api.patch("/user/verify-change-email", {
         email: profileForm.email,
         otp: profileForm.otp,
       });
 
       const me = await Api.get("/auth/me");
-
       setUser(me.data.data);
+
       toast.success("Email updated successfully");
+      setErrors({});
       setModalType(null);
       setOtpSent(false);
     } catch (err) {
-      toast.error(err.response?.data?.message);
+      setErrors({
+        api: err.response?.data?.message,
+      });
     }
   };
 
@@ -282,6 +309,9 @@ const Dashboard = () => {
                   className="border p-2 rounded"
                   required
                 />
+                {errors.oldPassword && (
+                  <p className="text-red-500 text-sm">{errors.oldPassword}</p>
+                )}
                 <input
                   type="password"
                   name="newPassword"
@@ -290,6 +320,10 @@ const Dashboard = () => {
                   className="border p-2 rounded"
                   required
                 />
+                {errors.newPassword && (
+                  <p className="text-red-500 text-sm">{errors.newPassword}</p>
+                )}
+
                 <input
                   type="password"
                   name="confirmPassword"
@@ -298,7 +332,16 @@ const Dashboard = () => {
                   className="border p-2 rounded"
                   required
                 />
-
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm">
+                    {errors.confirmPassword}
+                  </p>
+                )}
+                {errors.api && (
+                  <p className="text-red-500 text-sm text-center">
+                    {errors.api}
+                  </p>
+                )}
                 <button className="bg-indigo-500 text-white py-2 rounded">
                   Update
                 </button>
@@ -316,6 +359,14 @@ const Dashboard = () => {
                   className="border p-2 rounded"
                   disabled={otpSent}
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
+                {/* {errors.api && (
+                  <p className="text-red-500 text-sm text-center">
+                    {errors.api}
+                  </p>
+                )} */}
 
                 {!otpSent ? (
                   <button
@@ -339,6 +390,9 @@ const Dashboard = () => {
                       onChange={handleProfileChange}
                       className="border p-2 rounded"
                     />
+                    {errors.otp && (
+                      <p className="text-red-500 text-sm">{errors.otp}</p>
+                    )}
 
                     <button
                       type="button"
@@ -348,7 +402,6 @@ const Dashboard = () => {
                       Verify & Update
                     </button>
 
-                    {/* ✅ RESEND BUTTON */}
                     <button
                       type="button"
                       onClick={handleSendOtp}
@@ -367,6 +420,11 @@ const Dashboard = () => {
                     </button>
                   </>
                 )}
+                {errors.api && (
+                  <p className="text-red-500 text-sm text-center">
+                    {errors.api}
+                  </p>
+                )}
               </div>
             )}
 
@@ -384,6 +442,14 @@ const Dashboard = () => {
                   className="border p-2 rounded"
                   required
                 />
+                {errors.username && (
+                  <p className="text-red-500 text-sm">{errors.username}</p>
+                )}
+                {errors.api && (
+                  <p className="text-red-500 text-sm text-center">
+                    {errors.api}
+                  </p>
+                )}
 
                 <button className="bg-green-500 text-white py-2 rounded">
                   Update
