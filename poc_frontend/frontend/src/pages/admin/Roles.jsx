@@ -8,6 +8,7 @@ import { PERMISSIONS } from "../../constants/permissions";
 import { groupPermissions } from "../../utils/groupPermissions";
 import UserFilters from "../../components/otherComponents/UserFilters";
 import Pagination from "../../components/otherComponents/Pagination";
+import { validatePermissions } from "../../utils/readPermissionHelper";
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -48,35 +49,35 @@ const RolesPage = () => {
   };
 
   const fetchPermissions = async () => {
-      try {
-        const res = await Api.get("/permissions");
+    try {
+      const res = await Api.get("/permissions");
 
-        const data = res.data.data.data;
-        // console.log(data)
-        const excludedPermissions = ["permissions:read"];
+      const data = res.data.data.data;
+      // console.log(data)
+      const excludedPermissions = ["permissions:read"];
 
-        const filteredData = data
-          .map((module) => ({
-            ...module,
-            permissions: module.permissions.filter(
-              (p) => !excludedPermissions.includes(p.name),
-            ),
-          }))
-          .filter((module) => module.permissions.length > 0);
+      const filteredData = data
+        .map((module) => ({
+          ...module,
+          permissions: module.permissions.filter(
+            (p) => !excludedPermissions.includes(p.name),
+          ),
+        }))
+        .filter((module) => module.permissions.length > 0);
 
-        setGroupedPermissions(
-          filteredData.reduce((acc, module) => {
-            acc[module._id] = module.permissions;
-            return acc;
-          }, {}),
-        );
+      setGroupedPermissions(
+        filteredData.reduce((acc, module) => {
+          acc[module._id] = module.permissions;
+          return acc;
+        }, {}),
+      );
 
-        setPermissions(filteredData);
-      } catch (error) {
-        toast.error(
-          error.response?.data?.message || "Failed to fetch permissions",
-        );
-      }
+      setPermissions(filteredData);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to fetch permissions",
+      );
+    }
   };
 
   useEffect(() => {
@@ -86,17 +87,29 @@ const RolesPage = () => {
   useEffect(() => {
     fetchPermissions();
   }, [user]);
+
   const saveRole = async () => {
     try {
+      const allPermissionsFlat = permissions.flatMap(
+        (module) => module.permissions,
+      );
+
+      const errors = validatePermissions(
+        selectedPermissions,
+        allPermissionsFlat,
+      );
+
+      if (errors.length > 0) {
+        return toast.error(errors[0]);
+      }
+
       if (editRole) {
-        // console.log("edit role");
         await Api.patch(`/roles/${editRole._id}`, {
           name: roleName,
           permissions: selectedPermissions,
         });
         toast.success("Role updated");
       } else {
-        // console.log("create role");
         await Api.post("/roles", {
           name: roleName,
           permissions: selectedPermissions,
@@ -337,7 +350,7 @@ const RolesPage = () => {
               placeholder="Role name"
             />
 
-            {permissions  && (
+            {permissions && (
               <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
                 {Object.keys(groupedPermissions).map((module) => (
                   <div key={module} className="border-b pb-2">
@@ -402,10 +415,7 @@ const RolesPage = () => {
                 </button>
               )}
               {!permissions && (
-                <button
-                  disabled
-                  className="bg-blue-200 text-white px-3 py-1"
-                >
+                <button disabled className="bg-blue-200 text-white px-3 py-1">
                   Save
                 </button>
               )}
