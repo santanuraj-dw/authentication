@@ -11,6 +11,7 @@ import Pagination from "../../components/otherComponents/Pagination";
 import { validatePermissions } from "../../utils/readPermissionHelper";
 
 const RolesPage = () => {
+  const [formError, setFormError] = useState("");
   const [roles, setRoles] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [confirmRole, setConfirmRole] = useState(null);
@@ -100,7 +101,8 @@ const RolesPage = () => {
       );
 
       if (errors.length > 0) {
-        return toast.error(errors[0]);
+        setFormError(errors[0]);
+        return;
       }
 
       if (editRole) {
@@ -117,13 +119,14 @@ const RolesPage = () => {
         toast.success("Role created");
       }
 
+      setFormError("");
       setShowModal(false);
       setRoleName("");
       setSelectedPermissions([]);
       setEditRole(null);
       fetchRoles();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed");
+      setFormError(error.response?.data?.message || "Failed");
     }
   };
 
@@ -345,10 +348,17 @@ const RolesPage = () => {
 
             <input
               value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
+              onChange={(e) => {
+                setRoleName(e.target.value);
+                setFormError("");
+              }}
               className="border w-full p-2 mb-3"
               placeholder="Role name"
             />
+
+            {formError && (
+              <p className="text-red-500 text-sm mb-2">{formError}</p>
+            )}
 
             {permissions && (
               <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
@@ -376,6 +386,7 @@ const RolesPage = () => {
                               type="checkbox"
                               checked={selectedPermissions.includes(perm._id)}
                               onChange={(e) => {
+                                setFormError("");
                                 if (e.target.checked) {
                                   setSelectedPermissions((prev) =>
                                     prev.includes(perm._id)
