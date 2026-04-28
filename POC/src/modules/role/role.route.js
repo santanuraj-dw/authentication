@@ -36,7 +36,7 @@ router.get(
   verifyJWT,
   // authorizeRoles("admin"),
   // authorizePermissions(PERMISSIONS.ROLE_READ),
-  authorize([PERMISSIONS.ROLE_READ]),
+  // authorize([PERMISSIONS.ROLE_READ]),
   asyncHandler(getRolesController),
 );
 
@@ -52,7 +52,7 @@ router.patch(
   "/status/:roleId",
   verifyJWT,
   // authorizeRoles("admin"),
-  authorize([PERMISSIONS.ROLE_UPDATE]),
+  authorize([PERMISSIONS.ROLE_DELETE]),
   asyncHandler(changeStatusController),
 );
 

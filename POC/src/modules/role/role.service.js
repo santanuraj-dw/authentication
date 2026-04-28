@@ -2,6 +2,7 @@ import { PERMISSIONS } from "../../constants/permissions.js";
 import { Permission } from "../../models/Permission.model.js";
 import { Role } from "../../models/Role.model.js";
 import ApiError from "../../utils/ApiError.js";
+import { validatePermissionDependencies } from "../../utils/permissionDependences.js";
 
 export const createRoleService = async (data) => {
   let { name, permissions } = data;
@@ -30,6 +31,8 @@ export const createRoleService = async (data) => {
     throw new ApiError(400, "Some permissions are invalid");
   }
 
+  validatePermissionDependencies(validPermissions);
+
   return await Role.create({
     name,
     permissions,
@@ -39,6 +42,12 @@ export const createRoleService = async (data) => {
 // update role
 export const updateRole = async (roleId, data) => {
   const { name, permissions } = data;
+
+  const permissionDocs = await Permission.find({
+    _id: { $in: permissions },
+  });
+
+  validatePermissionDependencies(permissionDocs);
 
   const role = await Role.findById(roleId);
   if (!role) {

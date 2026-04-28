@@ -8,8 +8,10 @@ import { PERMISSIONS } from "../../constants/permissions";
 import { groupPermissions } from "../../utils/groupPermissions";
 import UserFilters from "../../components/otherComponents/UserFilters";
 import Pagination from "../../components/otherComponents/Pagination";
+import { validatePermissions } from "../../utils/readPermissionHelper";
 
 const RolesPage = () => {
+  const [formError, setFormError] = useState("");
   const [roles, setRoles] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [confirmRole, setConfirmRole] = useState(null);
@@ -84,21 +86,32 @@ const RolesPage = () => {
   }, [page, search, sortBy, order]);
 
   useEffect(() => {
-    if (user && hasPermission(user, [PERMISSIONS.PERMISSIONS_READ])) {
-      fetchPermissions();
-    }
+    fetchPermissions();
   }, [user]);
+
   const saveRole = async () => {
     try {
+      const allPermissionsFlat = permissions.flatMap(
+        (module) => module.permissions,
+      );
+
+      const errors = validatePermissions(
+        selectedPermissions,
+        allPermissionsFlat,
+      );
+
+      if (errors.length > 0) {
+        setFormError(errors[0]);
+        return;
+      }
+
       if (editRole) {
-        // console.log("edit role");
         await Api.patch(`/roles/${editRole._id}`, {
           name: roleName,
           permissions: selectedPermissions,
         });
         toast.success("Role updated");
       } else {
-        // console.log("create role");
         await Api.post("/roles", {
           name: roleName,
           permissions: selectedPermissions,
@@ -106,13 +119,14 @@ const RolesPage = () => {
         toast.success("Role created");
       }
 
+      setFormError("");
       setShowModal(false);
       setRoleName("");
       setSelectedPermissions([]);
       setEditRole(null);
       fetchRoles();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed");
+      setFormError(error.response?.data?.message || "Failed");
     }
   };
 
@@ -243,9 +257,11 @@ const RolesPage = () => {
                 Status {getArrow("isActive")}
               </th>
 
-              {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-                <th className="p-3 text-center">Actions</th>
-              )}
+              {user &&
+                (hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) ||
+                  hasPermission(user, [PERMISSIONS.ROLE_DELETE])) && (
+                  <th className="p-3 text-center">Actions</th>
+                )}
             </tr>
           </thead>
 
@@ -278,35 +294,42 @@ const RolesPage = () => {
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
-                {user && hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
-                  <>
-                    <td className="p-3 text-center flex gap-2 justify-center">
-                      <button
-                        onClick={() => toggleStatus(r._id, r.isActive)}
-                        className="px-3 py-1 text-xs bg-yellow-400 rounded"
-                      >
-                        {r.isActive ? "Deactivate" : "Activate"}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setEditRole(r);
-                          setRoleName(r.name);
-                          // setSelectedPermissions(r.permissions || []);
-                          setSelectedPermissions(
-                            (r.permissions || []).map((p) =>
-                              typeof p === "string" ? p : p._id,
-                            ),
-                          );
-                          setShowModal(true);
-                        }}
-                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </>
-                )}
+                {user &&
+                  (hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) ||
+                    hasPermission(user, [PERMISSIONS.ROLE_DELETE])) && (
+                    <>
+                      <td className="p-3 text-center flex gap-2 justify-center">
+                        {user &&
+                          hasPermission(user, [PERMISSIONS.ROLE_DELETE]) && (
+                            <button
+                              onClick={() => toggleStatus(r._id, r.isActive)}
+                              className="px-3 py-1 text-xs bg-yellow-400 rounded"
+                            >
+                              {r.isActive ? "Deactivate" : "Activate"}
+                            </button>
+                          )}
+                        {user &&
+                          hasPermission(user, [PERMISSIONS.ROLE_UPDATE]) && (
+                            <button
+                              onClick={() => {
+                                setEditRole(r);
+                                setRoleName(r.name);
+                                // setSelectedPermissions(r.permissions || []);
+                                setSelectedPermissions(
+                                  (r.permissions || []).map((p) =>
+                                    typeof p === "string" ? p : p._id,
+                                  ),
+                                );
+                                setShowModal(true);
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                            >
+                              Edit
+                            </button>
+                          )}
+                      </td>
+                    </>
+                  )}
               </tr>
             ))}
           </tbody>
@@ -325,65 +348,88 @@ const RolesPage = () => {
 
             <input
               value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
+              onChange={(e) => {
+                setRoleName(e.target.value);
+                setFormError("");
+              }}
               className="border w-full p-2 mb-3"
               placeholder="Role name"
             />
 
-            <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
-              {Object.keys(groupedPermissions).map((module) => (
-                <div key={module} className="border-b pb-2">
-                  <label className="flex items-center gap-2 font-semibold capitalize">
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected(module)}
-                      onChange={() => toggleModule(module)}
-                    />
-                    {module}
-                  </label>
+            {formError && (
+              <p className="text-red-500 text-sm mb-2">{formError}</p>
+            )}
 
-                  <div className="ml-5 mt-2 space-y-1">
-                    {groupedPermissions[module].map((perm) => {
-                      const action = perm.name.split(":")[1];
+            {permissions && (
+              <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
+                {Object.keys(groupedPermissions).map((module) => (
+                  <div key={module} className="border-b pb-2">
+                    <label className="flex items-center gap-2 font-semibold capitalize">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected(module)}
+                        onChange={() => toggleModule(module)}
+                      />
+                      {module}
+                    </label>
 
-                      return (
-                        <label
-                          key={perm._id}
-                          className="flex items-center gap-2 text-sm capitalize"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedPermissions.includes(perm._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedPermissions((prev) =>
-                                  prev.includes(perm._id)
-                                    ? prev
-                                    : [...prev, perm._id],
-                                );
-                              } else {
-                                setSelectedPermissions((prev) =>
-                                  prev.filter((id) => id !== perm._id),
-                                );
-                              }
-                            }}
-                          />
-                          {action}
-                        </label>
-                      );
-                    })}
+                    <div className="ml-5 mt-2 space-y-1">
+                      {groupedPermissions[module].map((perm) => {
+                        const action = perm.name.split(":")[1];
+
+                        return (
+                          <label
+                            key={perm._id}
+                            className="flex items-center gap-2 text-sm capitalize"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedPermissions.includes(perm._id)}
+                              onChange={(e) => {
+                                setFormError("");
+                                if (e.target.checked) {
+                                  setSelectedPermissions((prev) =>
+                                    prev.includes(perm._id)
+                                      ? prev
+                                      : [...prev, perm._id],
+                                  );
+                                } else {
+                                  setSelectedPermissions((prev) =>
+                                    prev.filter((id) => id !== perm._id),
+                                  );
+                                }
+                              }}
+                            />
+                            {action}
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
+                ))}
+              </div>
+            )}
+            {!permissions && (
+              <div className="max-h-60 overflow-y-auto border p-3 rounded space-y-3">
+                <div className="p-6 text-center text-gray-400">
+                  No Permissions found
                 </div>
-              ))}
-            </div>
-
+              </div>
+            )}
             <div className="flex gap-2 mt-3">
-              <button
-                onClick={saveRole}
-                className="bg-blue-500 text-white px-3 py-1"
-              >
-                Save
-              </button>
+              {permissions && (
+                <button
+                  onClick={saveRole}
+                  className="bg-blue-500 text-white px-3 py-1"
+                >
+                  Save
+                </button>
+              )}
+              {!permissions && (
+                <button disabled className="bg-blue-200 text-white px-3 py-1">
+                  Save
+                </button>
+              )}
 
               <button
                 onClick={() => {

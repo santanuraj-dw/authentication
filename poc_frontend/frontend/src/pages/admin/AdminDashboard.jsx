@@ -27,13 +27,14 @@ const AdminDashboard = () => {
 
   // all role fetch
   const fetchRoles = async () => {
-    try {
-      const res = await Api.get("/roles");
-      setRoles(res.data.data.roles);
-    } catch (error) {
-      const message = error.response?.data?.message || "Failed to fetch roles";
-      toast.error(message);
-    }
+      try {
+        const res = await Api.get("/roles");
+        setRoles(res.data.data.roles);
+      } catch (error) {
+        const message =
+          error.response?.data?.message || "Failed to fetch roles";
+        toast.error(message);
+      }
   };
 
   // all user fetch
@@ -243,10 +244,10 @@ const AdminDashboard = () => {
                 Verified {getArrow("isVerified")}
               </th>
 
-              {user &&
-                hasPermission(user, [PERMISSIONS.USER_UPDATE])&&(
-                  <th className="p-3 text-center">Actions</th>
-                )}
+              {((user && hasPermission(user, [PERMISSIONS.USER_DELETE])) ||
+                hasPermission(user, [PERMISSIONS.USER_UPDATE])) && (
+                <th className="p-3 text-center">Actions</th>
+              )}
             </tr>
           </thead>
 
@@ -375,28 +376,31 @@ const AdminDashboard = () => {
                     {u.isVerified ? "Verified" : "Not Verified"}
                   </span>
                 </td>
-
-                {user && hasPermission(user, [PERMISSIONS.USER_UPDATE]) && (
+                {((user && hasPermission(user, [PERMISSIONS.USER_DELETE])) ||
+                  hasPermission(user, [PERMISSIONS.USER_UPDATE])) && (
                   <td className="p-3 text-center flex gap-2 justify-center">
-                    <button
-                      onClick={() => toggleStatus(u._id, u.isActive)}
-                      className="px-3 py-1 text-xs rounded bg-yellow-400"
-                    >
-                      {u.isActive ? "Deactivate" : "Activate"}
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedUser(u);
-                        setSelectedRoles({
-                          [u._id]: u.roles.map((r) => r._id),
-                        });
-                        setShowRoleModal(true);
-                      }}
-                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                    >
-                      Change Role
-                    </button>
+                    {user && hasPermission(user, [PERMISSIONS.USER_DELETE]) && (
+                      <button
+                        onClick={() => toggleStatus(u._id, u.isActive)}
+                        className="px-3 py-1 text-xs rounded bg-yellow-400"
+                      >
+                        {u.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    )}
+                    {user && hasPermission(user, [PERMISSIONS.USER_UPDATE]) && (
+                      <button
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setSelectedRoles({
+                            [u._id]: u.roles.map((r) => r._id),
+                          });
+                          setShowRoleModal(true);
+                        }}
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
+                      >
+                        Change Role
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>
@@ -518,39 +522,47 @@ const AdminDashboard = () => {
                 ))}
               </div>
             </div>
+            {roles && (
+              <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                {roles.map((role) => {
+                  const selected = selectedRoles[selectedUser._id] || [];
 
-            <div className="border rounded p-2 max-h-40 overflow-y-auto">
-              {roles.map((role) => {
-                const selected = selectedRoles[selectedUser._id] || [];
+                  return (
+                    <label
+                      key={role._id}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(role._id)}
+                        onChange={(e) => {
+                          let updated;
 
-                return (
-                  <label
-                    key={role._id}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(role._id)}
-                      onChange={(e) => {
-                        let updated;
+                          if (e.target.checked) {
+                            updated = [...selected, role._id];
+                          } else {
+                            updated = selected.filter((id) => id !== role._id);
+                          }
 
-                        if (e.target.checked) {
-                          updated = [...selected, role._id];
-                        } else {
-                          updated = selected.filter((id) => id !== role._id);
-                        }
-
-                        setSelectedRoles((prev) => ({
-                          ...prev,
-                          [selectedUser._id]: updated,
-                        }));
-                      }}
-                    />
-                    {role.name}
-                  </label>
-                );
-              })}
-            </div>
+                          setSelectedRoles((prev) => ({
+                            ...prev,
+                            [selectedUser._id]: updated,
+                          }));
+                        }}
+                      />
+                      {role.name}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+            {!roles && (
+              <div className="border rounded p-2 max-h-40 overflow-y-auto">
+                <div className="p-6 text-center text-gray-400">
+                  No roles found
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-2 mt-4">
               <button
@@ -562,17 +574,26 @@ const AdminDashboard = () => {
               >
                 Cancel
               </button>
-
-              <button
-                onClick={async () => {
-                  await updateRoles(selectedUser._id);
-                  setShowRoleModal(false);
-                  setSelectedUser(null);
-                }}
-                className="px-3 py-1 bg-blue-500 text-white rounded"
-              >
-                Save
-              </button>
+              {roles && (
+                <button
+                  onClick={async () => {
+                    await updateRoles(selectedUser._id);
+                    setShowRoleModal(false);
+                    setSelectedUser(null);
+                  }}
+                  className="px-3 py-1 bg-blue-500 text-white rounded"
+                >
+                  Save
+                </button>
+              )}
+              {!roles && (
+                <button
+                  disabled
+                  className="px-3 py-1 bg-blue-200 text-white rounded"
+                >
+                  Save
+                </button>
+              )}
             </div>
           </div>
         </div>

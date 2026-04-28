@@ -253,28 +253,32 @@ export const getAllUser = async ({
 }) => {
   const skip = (page - 1) * limit;
 
+
+  const adminRole = await Role.findOne({ name: "admin" });
+
   const searchQuery = search
     ? {
         $or: [
           { username: { $regex: search, $options: "i" } },
-          // { email: { $regex: search, $options: "i" } },
         ],
       }
     : {};
 
   const query = {
     _id: { $ne: id },
+    roles: { $ne: adminRole?._id }, 
     ...searchQuery,
   };
 
-  const sortOptions = {
-    name: "username",
-    status: "isActive",
-    verified: "isVerified",
-    createdAt: "createdAt",
-  };
+  // const sortOptions = {
+  //   name: "username",
+  //   status: "isActive",
+  //   verified: "isVerified",
+  //   createdAt: "createdAt",
+  // };
 
-  const sortField = sortOptions[sortBy] || "createdAt";
+  // const sortField = sortOptions[sortBy] || "createdAt";
+  const sortField = sortBy || "createdAt";
   const sortOrder = order === "asc" ? 1 : -1;
 
   const users = await User.find(query)

@@ -6,7 +6,7 @@ const PermissionRoute = ({ children, permissions="" }) => {
   const { user } = useAuth();
   const location = useLocation();
 
-  console.log(user)
+  // console.log(user)
   if (!user) return <Navigate to="/login" />;
 
   if (!hasAnyPermission(user)) {
